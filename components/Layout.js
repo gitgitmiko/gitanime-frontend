@@ -184,16 +184,38 @@ export default function Layout({ children }) {
               <div>
                 <h3 className="text-white font-semibold mb-4">Quick Links</h3>
                 <ul className="space-y-2">
-                  {navigation.map((item) => (
-                    <li key={item.name}>
-                      <Link
-                        href={item.href}
-                        className="text-dark-300 hover:text-primary-400 transition-colors duration-200"
-                      >
-                        {item.name}
-                      </Link>
-                    </li>
-                  ))}
+                  <li>
+                    <Link
+                      href="/"
+                      className="text-dark-300 hover:text-primary-400 transition-colors duration-200"
+                    >
+                      Beranda
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/anime"
+                      className="text-dark-300 hover:text-primary-400 transition-colors duration-200"
+                    >
+                      Katalog Anime
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/latest"
+                      className="text-dark-300 hover:text-primary-400 transition-colors duration-200"
+                    >
+                      Episode Terbaru
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/admin"
+                      className="text-dark-300 hover:text-primary-400 transition-colors duration-200"
+                    >
+                      Admin Panel
+                    </Link>
+                  </li>
                 </ul>
               </div>
 
@@ -201,7 +223,7 @@ export default function Layout({ children }) {
               <div>
                 <h3 className="text-white font-semibold mb-4">Info</h3>
                 <ul className="space-y-2 text-dark-300">
-                  <li>© 2024 GitAnime</li>
+                  <li>© 2025 GitAnime</li>
                   <li>Made with ❤️</li>
                   <li>Powered by Samehadaku</li>
                 </ul>

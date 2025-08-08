@@ -120,25 +120,6 @@ export default function Home() {
           Platform streaming anime terbaik dengan koleksi terlengkap dan update terbaru.
           Nikmati anime favorit Anda dengan kualitas terbaik.
         </p>
-        
-        {/* Search Bar */}
-        <form onSubmit={handleSearch} className="max-w-md mx-auto">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Cari anime favorit Anda..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="input-field w-full pr-12 text-lg"
-            />
-            <button
-              type="submit"
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-dark-400 hover:text-primary-400"
-            >
-              <FiSearch className="w-6 h-6" />
-            </button>
-          </div>
-        </form>
       </div>
 
       {/* Controls */}
@@ -218,23 +199,23 @@ export default function Home() {
               >
                 Sebelumnya
               </button>
-              
+
               {/* Show page numbers with better logic */}
               {(() => {
                 const pages = [];
                 const maxVisiblePages = 5;
                 let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
                 let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-                
+
                 // Adjust start page if we're near the end
                 if (endPage - startPage + 1 < maxVisiblePages) {
                   startPage = Math.max(1, endPage - maxVisiblePages + 1);
                 }
-                
+
                 for (let i = startPage; i <= endPage; i++) {
                   pages.push(i);
                 }
-                
+
                 return pages.map(page => (
                   <button
                     key={page}
@@ -249,7 +230,7 @@ export default function Home() {
                   </button>
                 ));
               })()}
-              
+
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
@@ -262,24 +243,24 @@ export default function Home() {
         </>
       ) : (
         <div className="text-center py-12">
-          <div className="text-dark-400 text-6xl mb-4">🔍</div>
-          <h3 className="text-xl font-semibold text-white mb-2">Tidak Ada Hasil</h3>
-          <p className="text-dark-300 mb-6">
+          <div className="text-dark-400 text-6xl mb-4">📺</div>
+          <h3 className="text-xl font-semibold text-white mb-2">
+            {searchQuery ? 'Tidak ada hasil' : 'Belum ada episode'}
+          </h3>
+          <p className="text-dark-300">
             {searchQuery 
-              ? `Tidak ditemukan episode dengan kata kunci "${searchQuery}"`
-              : 'Belum ada episode yang tersedia'
+              ? `Tidak ditemukan episode untuk "${searchQuery}"`
+              : 'Episode anime akan muncul di sini setelah ditambahkan.'
             }
           </p>
-          <button onClick={clearSearch} className="btn-primary">
-            Lihat Semua Episode
-          </button>
         </div>
       )}
 
       {/* Loading More */}
       {loading && anime.length > 0 && (
-        <div className="flex justify-center py-8">
-          <LoadingSpinner />
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto"></div>
+          <p className="text-dark-300 mt-2">Memuat lebih banyak...</p>
         </div>
       )}
     </div>

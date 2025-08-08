@@ -186,25 +186,6 @@ export default function AnimeList() {
 
       {/* Search and Filters */}
       <div className="space-y-4">
-        {/* Search Bar */}
-        <form onSubmit={handleSearch} className="max-w-md mx-auto">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Cari anime..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="input-field w-full pr-12"
-            />
-            <button
-              type="submit"
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-dark-400 hover:text-primary-400"
-            >
-              <FiSearch className="w-5 h-5" />
-            </button>
-          </div>
-        </form>
-
         {/* Controls */}
         <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
           <div className="flex items-center space-x-4">
