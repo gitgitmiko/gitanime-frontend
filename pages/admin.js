@@ -26,14 +26,14 @@ export default function Admin() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [systemStatus, setSystemStatus] = useState({
-    totalAnime: 'Loading...',
-    totalEpisodes: 'Loading...',
-    lastUpdate: 'Loading...'
+    totalAnime: 'N/A',
+    totalEpisodes: 'N/A',
+    lastUpdate: 'N/A'
   });
 
   useEffect(() => {
     fetchConfig();
-    fetchSystemStatus();
+    // Remove fetchSystemStatus() since /api/scrape only supports POST
   }, []);
 
   const fetchConfig = async () => {
@@ -61,65 +61,6 @@ export default function Admin() {
       setError('Gagal memuat konfigurasi');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchSystemStatus = async () => {
-    try {
-      const response = await axiosGet('/api/scrape');
-      
-      if (response.data) {
-        // Extract data from the response
-        const { lastUpdated, summary } = response.data;
-        
-        // Parse anime count from summary
-        let totalAnime = 'N/A';
-        if (summary?.animeListScraping) {
-          const animeMatch = summary.animeListScraping.match(/(\d+)\s+anime\s+found/);
-          if (animeMatch) {
-            totalAnime = animeMatch[1];
-          }
-        }
-        
-        // Parse episode count from summary
-        let totalEpisodes = 'N/A';
-        if (summary?.latestEpisodesScraping) {
-          const episodeMatch = summary.latestEpisodesScraping.match(/(\d+)\s+episodes\s+found/);
-          if (episodeMatch) {
-            totalEpisodes = episodeMatch[1];
-          }
-        }
-        
-        // Format last update date
-        let formattedLastUpdate = 'N/A';
-        if (lastUpdated) {
-          try {
-            const date = new Date(lastUpdated);
-            formattedLastUpdate = date.toLocaleString('id-ID', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            });
-          } catch (e) {
-            formattedLastUpdate = lastUpdated;
-          }
-        }
-        
-        setSystemStatus({
-          totalAnime,
-          totalEpisodes,
-          lastUpdate: formattedLastUpdate
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching system status:', error);
-      setSystemStatus({
-        totalAnime: 'Error',
-        totalEpisodes: 'Error',
-        lastUpdate: 'Error'
-      });
     }
   };
 
