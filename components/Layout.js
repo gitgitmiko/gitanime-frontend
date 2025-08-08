@@ -14,7 +14,9 @@ export default function Layout({ children }) {
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/?search=${encodeURIComponent(searchQuery.trim())}`);
+      // Stay on current page when searching
+      const currentPath = router.pathname;
+      router.push(`${currentPath}?search=${encodeURIComponent(searchQuery.trim())}`);
       setIsMenuOpen(false);
     }
   };
