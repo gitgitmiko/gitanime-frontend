@@ -169,12 +169,54 @@ export default function Admin() {
     setSuccess(null);
 
     try {
-      await axiosPost('/api/scrape', { password });
+      const response = await axiosPost('/api/scrape', { password });
       setSuccess('Scraping berhasil dijalankan! Data akan diperbarui dalam beberapa menit.');
-      // Refresh system status after scraping
-      setTimeout(() => {
-        fetchSystemStatus();
-      }, 2000);
+      
+      // Immediately update system status with the response data
+      if (response.data) {
+        const { lastUpdated, summary } = response.data;
+        
+        // Parse anime count from summary
+        let totalAnime = 'N/A';
+        if (summary?.animeListScraping) {
+          const animeMatch = summary.animeListScraping.match(/(\d+)\s+anime\s+found/);
+          if (animeMatch) {
+            totalAnime = animeMatch[1];
+          }
+        }
+        
+        // Parse episode count from summary
+        let totalEpisodes = 'N/A';
+        if (summary?.latestEpisodesScraping) {
+          const episodeMatch = summary.latestEpisodesScraping.match(/(\d+)\s+episodes\s+found/);
+          if (episodeMatch) {
+            totalEpisodes = episodeMatch[1];
+          }
+        }
+        
+        // Format last update date
+        let formattedLastUpdate = 'N/A';
+        if (lastUpdated) {
+          try {
+            const date = new Date(lastUpdated);
+            formattedLastUpdate = date.toLocaleString('id-ID', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+          } catch (e) {
+            formattedLastUpdate = lastUpdated;
+          }
+        }
+        
+        setSystemStatus({
+          totalAnime,
+          totalEpisodes,
+          lastUpdate: formattedLastUpdate
+        });
+      }
     } catch (error) {
       console.error('Error during scraping:', error);
       setError('Gagal menjalankan scraping');
@@ -316,13 +358,6 @@ export default function Admin() {
               <span className="text-white">{systemStatus.lastUpdate}</span>
             </div>
           </div>
-          <button
-            onClick={fetchSystemStatus}
-            className="btn-secondary mt-4 w-full flex items-center justify-center space-x-2"
-          >
-            <FiRefreshCw className="w-4 h-4" />
-            <span>Refresh Status</span>
-          </button>
         </div>
       </div>
 
