@@ -38,217 +38,235 @@ export default function AnimeDetail() {
     }
   };
 
+  const handleBack = () => {
+    router.back();
+  };
+
   if (loading) {
-    return <LoadingSpinner text="Memuat detail anime..." />;
+    return (
+      <div className="min-h-screen bg-dark-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto"></div>
+          <p className="text-white mt-4">Memuat detail anime...</p>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <div className="text-red-400 text-6xl mb-4">⚠️</div>
-        <h2 className="text-2xl font-bold text-white mb-2">Oops! Terjadi Kesalahan</h2>
-        <p className="text-dark-300 mb-6">{error}</p>
-        <button onClick={fetchAnimeDetail} className="btn-primary">
-          Coba Lagi
-        </button>
+      <div className="min-h-screen bg-dark-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <h1 className="text-white text-xl mb-2">Terjadi Kesalahan</h1>
+          <p className="text-dark-300 mb-4">{error}</p>
+          <button
+            onClick={handleBack}
+            className="btn-primary"
+          >
+            Kembali
+          </button>
+        </div>
       </div>
     );
   }
 
   if (!animeDetail) {
     return (
-      <div className="text-center py-12">
-        <div className="text-dark-400 text-6xl mb-4">📺</div>
-        <h3 className="text-xl font-semibold text-white mb-2">Anime Tidak Ditemukan</h3>
-        <p className="text-dark-300 mb-6">
-          Detail anime tidak dapat dimuat.
-        </p>
-        <Link href="/latest" className="btn-primary">
-          Kembali ke Terbaru
-        </Link>
+      <div className="min-h-screen bg-dark-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-dark-400 text-6xl mb-4">📺</div>
+          <h3 className="text-xl font-semibold text-white mb-2">Anime Tidak Ditemukan</h3>
+          <p className="text-dark-300 mb-4">
+            Detail anime tidak dapat dimuat.
+          </p>
+          <button
+            onClick={handleBack}
+            className="btn-primary"
+          >
+            Kembali
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-      <div className="space-y-8">
-        {/* Back Button */}
-        <div className="mb-4">
-          <Link 
-            href="/latest"
-            className="inline-flex items-center space-x-2 text-primary-400 hover:text-primary-300 transition-colors duration-200 text-sm"
-          >
-            <FiArrowLeft className="w-4 h-4" />
-            <span>← Kembali ke Terbaru</span>
-          </Link>
+    <div className="min-h-screen bg-dark-900">
+      {/* Header */}
+      <div className="bg-dark-800 border-b border-dark-700 p-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={handleBack}
+              className="btn-secondary"
+            >
+              ← Kembali
+            </button>
+            <h1 className="text-white text-xl font-semibold">
+              {animeDetail.title || 'Detail Anime'}
+            </h1>
+          </div>
         </div>
+      </div>
 
-        {/* Anime Header */}
-        <div className="card p-6">
-          <div className="flex flex-col lg:flex-row gap-6">
-            {/* Anime Image */}
-            <div className="flex-shrink-0">
-              {(animeDetail.episodeScreenshot || animeDetail.image) ? (
-                <div className="w-48 h-64 relative rounded-lg overflow-hidden">
-                  <Image
-                    src={animeDetail.episodeScreenshot || animeDetail.image || 'https://via.placeholder.com/192x256/1f2937/6b7280?text=No+Image'}
-                    alt={animeDetail.title}
-                    fill
-                    className="object-cover"
-                    onError={(e) => {
-                      e.target.src = 'https://via.placeholder.com/192x256/1f2937/6b7280?text=No+Image';
-                    }}
-                    onLoad={(e) => {
-                      e.target.style.opacity = '1';
-                    }}
-                    style={{ opacity: 0, transition: 'opacity 0.3s ease-in-out' }}
-                  />
-                </div>
-              ) : (
-                <div className="w-48 h-64 bg-dark-700 rounded-lg flex items-center justify-center">
-                  <FiPlay className="w-16 h-16 text-dark-400" />
-                </div>
-              )}
-            </div>
-
-            {/* Anime Info */}
-            <div className="flex-1">
-              <h1 className="text-2xl md:text-3xl font-bold text-white mb-4">{animeDetail.title}</h1>
-              
-              {animeDetail.japanese && (
-                <p className="text-dark-300 mb-2">
-                  <strong className="text-white">Japanese:</strong> {animeDetail.japanese}
-                </p>
-              )}
-              
-              {animeDetail.english && (
-                <p className="text-dark-300 mb-2">
-                  <strong className="text-white">English:</strong> {animeDetail.english}
-                </p>
-              )}
-
-              {/* Anime Details Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                {animeDetail.status && (
-                  <div className="flex items-center space-x-2">
-                    <FiTag className="w-4 h-4 text-primary-400" />
-                    <span className="text-dark-300">
-                      <strong className="text-white">Status:</strong> {animeDetail.status}
-                    </span>
+      <div className="max-w-7xl mx-auto p-4">
+        <div className="space-y-8">
+          {/* Anime Header */}
+          <div className="card p-6">
+            <div className="flex flex-col lg:flex-row gap-6">
+              {/* Anime Image */}
+              <div className="flex-shrink-0">
+                {(animeDetail.episodeScreenshot || animeDetail.image) ? (
+                  <div className="w-48 h-64 relative rounded-lg overflow-hidden">
+                    <Image
+                      src={animeDetail.episodeScreenshot || animeDetail.image || 'https://via.placeholder.com/192x256/1f2937/6b7280?text=No+Image'}
+                      alt={animeDetail.title}
+                      fill
+                      className="object-cover"
+                      onError={(e) => {
+                        e.target.src = 'https://via.placeholder.com/192x256/1f2937/6b7280?text=No+Image';
+                      }}
+                      onLoad={(e) => {
+                        e.target.style.opacity = '1';
+                      }}
+                      style={{ opacity: 0, transition: 'opacity 0.3s ease-in-out' }}
+                    />
                   </div>
-                )}
-                
-                {animeDetail.type && (
-                  <div className="flex items-center space-x-2">
-                    <FiPlay className="w-4 h-4 text-primary-400" />
-                    <span className="text-dark-300">
-                      <strong className="text-white">Type:</strong> {animeDetail.type}
-                    </span>
-                  </div>
-                )}
-                
-                {animeDetail.duration && (
-                  <div className="flex items-center space-x-2">
-                    <FiClock className="w-4 h-4 text-primary-400" />
-                    <span className="text-dark-300">
-                      <strong className="text-white">Duration:</strong> {animeDetail.duration}
-                    </span>
-                  </div>
-                )}
-                
-                {animeDetail.totalEpisode && (
-                  <div className="flex items-center space-x-2">
-                    <FiStar className="w-4 h-4 text-primary-400" />
-                    <span className="text-dark-300">
-                      <strong className="text-white">Episodes:</strong> {animeDetail.totalEpisode}
-                    </span>
-                  </div>
-                )}
-                
-                {animeDetail.season && (
-                  <div className="flex items-center space-x-2">
-                    <FiCalendar className="w-4 h-4 text-primary-400" />
-                    <span className="text-dark-300">
-                      <strong className="text-white">Season:</strong> {animeDetail.season}
-                    </span>
-                  </div>
-                )}
-                
-                {animeDetail.studio && (
-                  <div className="flex items-center space-x-2">
-                    <FiPlay className="w-4 h-4 text-primary-400" />
-                    <span className="text-dark-300">
-                      <strong className="text-white">Studio:</strong> {animeDetail.studio}
-                    </span>
+                ) : (
+                  <div className="w-48 h-64 bg-dark-700 rounded-lg flex items-center justify-center">
+                    <FiPlay className="w-16 h-16 text-dark-400" />
                   </div>
                 )}
               </div>
 
-              {/* Genres */}
-              {animeDetail.genres && animeDetail.genres.length > 0 && (
-                <div className="mt-6">
-                  <h3 className="text-lg font-semibold text-white mb-3">Genres</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {animeDetail.genres.map((genre, index) => (
-                      <span 
-                        key={index}
-                        className="px-3 py-1 bg-primary-500 text-white text-sm rounded-full"
-                      >
-                        {genre}
+              {/* Anime Info */}
+              <div className="flex-1">
+                <h1 className="text-2xl md:text-3xl font-bold text-white mb-4">{animeDetail.title}</h1>
+                
+                {animeDetail.japanese && (
+                  <p className="text-dark-300 mb-2">
+                    <strong className="text-white">Japanese:</strong> {animeDetail.japanese}
+                  </p>
+                )}
+                
+                {animeDetail.english && (
+                  <p className="text-dark-300 mb-2">
+                    <strong className="text-white">English:</strong> {animeDetail.english}
+                  </p>
+                )}
+
+                {/* Anime Details Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                  {animeDetail.status && (
+                    <div className="flex items-center space-x-2">
+                      <FiTag className="w-4 h-4 text-primary-400" />
+                      <span className="text-dark-300">
+                        <strong className="text-white">Status:</strong> {animeDetail.status}
                       </span>
-                    ))}
-                  </div>
+                    </div>
+                  )}
+
+                  {animeDetail.type && (
+                    <div className="flex items-center space-x-2">
+                      <FiPlay className="w-4 h-4 text-primary-400" />
+                      <span className="text-dark-300">
+                        <strong className="text-white">Type:</strong> {animeDetail.type}
+                      </span>
+                    </div>
+                  )}
+
+                  {animeDetail.episodes && (
+                    <div className="flex items-center space-x-2">
+                      <FiCalendar className="w-4 h-4 text-primary-400" />
+                      <span className="text-dark-300">
+                        <strong className="text-white">Episodes:</strong> {animeDetail.episodes}
+                      </span>
+                    </div>
+                  )}
+
+                  {animeDetail.duration && (
+                    <div className="flex items-center space-x-2">
+                      <FiClock className="w-4 h-4 text-primary-400" />
+                      <span className="text-dark-300">
+                        <strong className="text-white">Duration:</strong> {animeDetail.duration}
+                      </span>
+                    </div>
+                  )}
+
+                  {animeDetail.rating && (
+                    <div className="flex items-center space-x-2">
+                      <FiStar className="w-4 h-4 text-yellow-400" />
+                      <span className="text-dark-300">
+                        <strong className="text-white">Rating:</strong> {animeDetail.rating}
+                      </span>
+                    </div>
+                  )}
+
+                  {animeDetail.releaseDate && (
+                    <div className="flex items-center space-x-2">
+                      <FiCalendar className="w-4 h-4 text-primary-400" />
+                      <span className="text-dark-300">
+                        <strong className="text-white">Release Date:</strong> {animeDetail.releaseDate}
+                      </span>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
-        </div>
 
-        {/* Episodes */}
-        {animeDetail.episodes && animeDetail.episodes.length > 0 && (
-          <div className="card p-6">
-            <h2 className="text-2xl font-bold text-white mb-6">
-              Daftar Episode ({animeDetail.episodes.length})
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {animeDetail.episodes.map((episode) => (
-                <Link
-                  key={episode.id}
-                  href={`/episode-player?url=${encodeURIComponent(episode.link)}&title=${encodeURIComponent(animeDetail.title)}`}
-                  className="block p-4 bg-dark-700 rounded-lg hover:bg-dark-600 transition-colors duration-200 group"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="flex-shrink-0">
-                      <div className="w-12 h-12 bg-primary-500 rounded-lg flex items-center justify-center">
-                        <FiPlay className="w-6 h-6 text-white" />
-                      </div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-medium text-white truncate group-hover:text-primary-400 transition-colors duration-200">
-                        {episode.title}
-                      </h3>
-                      <p className="text-xs text-dark-300">
-                        Episode {episode.number}
-                      </p>
+                {/* Genres */}
+                {animeDetail.genres && animeDetail.genres.length > 0 && (
+                  <div className="mt-6">
+                    <h3 className="text-white font-semibold mb-2">Genres:</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {animeDetail.genres.map((genre, index) => (
+                        <span key={index} className="bg-primary-600 text-white px-3 py-1 rounded-full text-sm">
+                          {genre}
+                        </span>
+                      ))}
                     </div>
                   </div>
-                </Link>
-              ))}
+                )}
+
+                {/* Synopsis */}
+                {animeDetail.synopsis && (
+                  <div className="mt-6">
+                    <h3 className="text-white font-semibold mb-2">Synopsis:</h3>
+                    <p className="text-dark-300 leading-relaxed">
+                      {animeDetail.synopsis}
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        )}
 
-        {/* No Episodes */}
-        {(!animeDetail.episodes || animeDetail.episodes.length === 0) && (
-          <div className="card p-6 text-center">
-            <div className="text-dark-400 text-4xl mb-4">📺</div>
-            <h3 className="text-xl font-semibold text-white mb-2">Belum Ada Episode</h3>
-            <p className="text-dark-300">
-              Episode untuk anime ini belum tersedia.
-            </p>
-          </div>
-        )}
+          {/* Episodes List */}
+          {animeDetail.episodes && animeDetail.episodes.length > 0 && (
+            <div className="card p-6">
+              <h2 className="text-white text-xl font-semibold mb-4">Daftar Episode</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {animeDetail.episodes.map((episode, index) => (
+                  <Link
+                    key={episode.id || index}
+                    href={`/episode-player?url=${encodeURIComponent(episode.url)}&title=${encodeURIComponent(animeDetail.title)}`}
+                    className="block p-4 bg-dark-700 rounded-lg hover:bg-dark-600 transition-colors duration-200"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-white font-medium">Episode {episode.episodeNumber || index + 1}</h3>
+                        {episode.title && (
+                          <p className="text-dark-300 text-sm mt-1">{episode.title}</p>
+                        )}
+                      </div>
+                      <FiPlay className="w-5 h-5 text-primary-400" />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
+    </div>
   );
 }
