@@ -94,10 +94,6 @@ export default function EpisodePlayer() {
     if (!episodeUrl) return null;
     
     try {
-      // Extract episode ID from URL
-      const urlParts = episodeUrl.split('/');
-      const episodeId = urlParts[urlParts.length - 2]; // Get the episode ID
-      
       // Construct direct video URL using backend proxy
       const directUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/api/video-proxy?url=${encodeURIComponent(episodeUrl)}`;
       return directUrl;
@@ -211,48 +207,6 @@ export default function EpisodePlayer() {
                     </button>
                   );
                 })}
-              </div>
-            </div>
-          )}
-
-          {/* Video Information */}
-          <div className="card p-6">
-            <h2 className="text-white text-xl font-semibold mb-4">Informasi Video</h2>
-            <div className="space-y-2 text-dark-300">
-              <p><strong>Episode URL:</strong> {videoData?.episodeUrl}</p>
-              <p><strong>Video Type:</strong> {videoData?.type || 'Tidak tersedia'}</p>
-              <p><strong>Player Options:</strong> {videoData?.playerOptions?.length || 0} opsi tersedia</p>
-            </div>
-          </div>
-
-          {/* Direct Video Links */}
-          {videoData && videoData.playerOptions && videoData.playerOptions.some(option => option.videoUrl) && (
-            <div className="card p-6 mt-6">
-              <h2 className="text-white text-xl font-semibold mb-4">Link Video Langsung</h2>
-              <div className="space-y-3">
-                {videoData.playerOptions
-                  .filter(option => option.videoUrl)
-                  .map((option, index) => (
-                    <div key={option.id} className="flex items-center justify-between p-3 bg-dark-700 rounded-lg">
-                      <span className="text-dark-300">{option.text}</span>
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleVideoSelect(option.videoUrl)}
-                          className="btn-primary text-sm"
-                        >
-                          Putar
-                        </button>
-                        <a
-                          href={option.videoUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="btn-secondary text-sm"
-                        >
-                          Buka
-                        </a>
-                      </div>
-                    </div>
-                  ))}
               </div>
             </div>
           )}
