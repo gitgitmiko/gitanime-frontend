@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { axiosGet } from '../utils/api';
-import AnimeCard from '../components/AnimeCard';
+import AnimeListCard from '../components/AnimeListCard';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { FiSearch, FiFilter, FiGrid, FiList, FiX } from 'react-icons/fi';
+import { FiSearch, FiFilter, FiGrid, FiList, FiX, FiRefreshCw } from 'react-icons/fi';
 
 export default function AnimeList() {
   const [anime, setAnime] = useState([]);
@@ -12,6 +12,7 @@ export default function AnimeList() {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [viewMode, setViewMode] = useState('grid');
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
@@ -19,6 +20,7 @@ export default function AnimeList() {
     sortBy: 'title',
     sortOrder: 'asc'
   });
+  const [summary, setSummary] = useState({});
   const router = useRouter();
 
   useEffect(() => {
@@ -34,16 +36,23 @@ export default function AnimeList() {
       setLoading(true);
       const params = {
         page: currentPage,
-        limit: 24,
+        limit: 20,
         ...(searchQuery && { search: searchQuery }),
         ...(filters.status && { status: filters.status }),
         ...(filters.sortBy && { sortBy: filters.sortBy }),
         ...(filters.sortOrder && { sortOrder: filters.sortOrder })
       };
 
-      const response = await axiosGet('/api/anime', { params });
-      setAnime(response.data.anime);
-      setTotalPages(response.data.pagination.totalPages);
+      const response = await axiosGet('/api/anime-list', { params });
+      
+      if (response.data.success) {
+        setAnime(response.data.data.anime);
+        setTotalPages(response.data.data.pagination.totalPages);
+        setTotalItems(response.data.data.pagination.totalItems);
+        setSummary(response.data.data.summary || {});
+      } else {
+        setError(response.data.message || 'Gagal memuat data anime');
+      }
     } catch (error) {
       console.error('Error fetching anime:', error);
       setError('Gagal memuat data anime');
@@ -88,9 +97,38 @@ export default function AnimeList() {
   };
 
   const handlePageChange = (page) => {
+    console.log('Changing to page:', page);
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  const handleForceRefresh = () => {
+    const params = {
+      page: currentPage,
+      limit: 20,
+      forceRefresh: true,
+      ...(searchQuery && { search: searchQuery }),
+      ...(filters.status && { status: filters.status }),
+      ...(filters.sortBy && { sortBy: filters.sortBy }),
+      ...(filters.sortOrder && { sortOrder: filters.sortOrder })
+    };
+
+    axiosGet('/api/anime-list', { params }).then(response => {
+      if (response.data.success) {
+        setAnime(response.data.data.anime);
+        setTotalPages(response.data.data.pagination.totalPages);
+        setTotalItems(response.data.data.pagination.totalItems);
+        setSummary(response.data.data.summary || {});
+      }
+    });
+  };
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Current page:', currentPage);
+    console.log('Total pages:', totalPages);
+    console.log('Anime count:', anime.length);
+  }, [currentPage, totalPages, anime.length]);
 
   if (loading && anime.length === 0) {
     return <LoadingSpinner />;
@@ -122,6 +160,30 @@ export default function AnimeList() {
         </p>
       </div>
 
+      {/* Summary Stats */}
+      {summary && Object.keys(summary).length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="card text-center p-4">
+            <div className="text-2xl font-bold text-primary-400 mb-1">
+              {summary.totalAnime || totalItems || 0}
+            </div>
+            <div className="text-sm text-dark-300">Total Anime</div>
+          </div>
+          <div className="card text-center p-4">
+            <div className="text-2xl font-bold text-primary-400 mb-1">
+              {anime.length}
+            </div>
+            <div className="text-sm text-dark-300">Ditampilkan</div>
+          </div>
+          <div className="card text-center p-4">
+            <div className="text-2xl font-bold text-primary-400 mb-1">
+              {summary.lastUpdated ? new Date(summary.lastUpdated).toLocaleDateString('id-ID') : 'N/A'}
+            </div>
+            <div className="text-sm text-dark-300">Update Terakhir</div>
+          </div>
+        </div>
+      )}
+
       {/* Search and Filters */}
       <div className="space-y-4">
         {/* Search Bar */}
@@ -152,6 +214,15 @@ export default function AnimeList() {
             >
               <FiFilter className="w-4 h-4" />
               <span>Filter</span>
+            </button>
+            
+            <button
+              onClick={handleForceRefresh}
+              className="btn-secondary flex items-center space-x-2"
+              title="Refresh data dari sumber"
+            >
+              <FiRefreshCw className="w-4 h-4" />
+              <span>Refresh</span>
             </button>
             
             {(filters.status || searchQuery) && (
@@ -220,8 +291,8 @@ export default function AnimeList() {
                   className="input-field w-full"
                 >
                   <option value="title">Judul</option>
+                  <option value="rating">Rating</option>
                   <option value="createdAt">Tanggal Ditambahkan</option>
-                  <option value="episodes">Jumlah Episode</option>
                 </select>
               </div>
 
@@ -250,8 +321,12 @@ export default function AnimeList() {
             {searchQuery ? `Hasil Pencarian: "${searchQuery}"` : 'Semua Anime'}
           </h2>
           {anime.length > 0 && (
-            <span className="text-dark-300">({anime.length} anime)</span>
+            <span className="text-dark-300">({anime.length} dari {totalItems} anime)</span>
           )}
+        </div>
+        {/* Debug info */}
+        <div className="text-xs text-dark-400">
+          Halaman {currentPage} dari {totalPages}
         </div>
       </div>
 
@@ -260,7 +335,7 @@ export default function AnimeList() {
         <>
           <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6' : 'space-y-4'}>
             {anime.map((animeItem) => (
-              <AnimeCard key={animeItem.id} anime={animeItem} viewMode={viewMode} />
+              <AnimeListCard key={animeItem.id} anime={animeItem} viewMode={viewMode} />
             ))}
           </div>
 
@@ -275,9 +350,23 @@ export default function AnimeList() {
                 Sebelumnya
               </button>
               
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                const page = i + 1;
-                return (
+              {/* Show page numbers with better logic */}
+              {(() => {
+                const pages = [];
+                const maxVisiblePages = 5;
+                let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+                let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+                
+                // Adjust start page if we're near the end
+                if (endPage - startPage + 1 < maxVisiblePages) {
+                  startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                }
+                
+                for (let i = startPage; i <= endPage; i++) {
+                  pages.push(i);
+                }
+                
+                return pages.map(page => (
                   <button
                     key={page}
                     onClick={() => handlePageChange(page)}
@@ -289,8 +378,8 @@ export default function AnimeList() {
                   >
                     {page}
                   </button>
-                );
-              })}
+                ));
+              })()}
               
               <button
                 onClick={() => handlePageChange(currentPage + 1)}

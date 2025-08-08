@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { axiosGet } from '../utils/api';
 import AnimeCard from '../components/AnimeCard';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { FiSearch, FiFilter, FiGrid, FiList } from 'react-icons/fi';
+import { FiSearch, FiFilter, FiGrid, FiList, FiRefreshCw } from 'react-icons/fi';
 
 export default function Home() {
   const [anime, setAnime] = useState([]);
@@ -12,6 +12,7 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [viewMode, setViewMode] = useState('grid'); // grid or list
   const router = useRouter();
 
@@ -31,9 +32,17 @@ export default function Home() {
         ...(searchQuery && { search: searchQuery })
       };
 
-      const response = await axiosGet('/api/anime', { params });
-      setAnime(response.data.anime);
-      setTotalPages(response.data.pagination.totalPages);
+      const response = await axiosGet('/api/latest-episodes', { params });
+      
+      if (response.data.success) {
+        setAnime(response.data.data.episodes || []);
+        // Use pagination data from API
+        const pagination = response.data.data.pagination;
+        setTotalPages(pagination.totalPages);
+        setTotalItems(pagination.totalItems);
+      } else {
+        setError(response.data.message || 'Gagal memuat data anime');
+      }
     } catch (error) {
       console.error('Error fetching anime:', error);
       setError('Gagal memuat data anime');
@@ -57,6 +66,30 @@ export default function Home() {
   const handlePageChange = (page) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleForceRefresh = () => {
+    const params = {
+      page: currentPage,
+      limit: 20,
+      forceRefresh: true,
+      ...(searchQuery && { search: searchQuery })
+    };
+
+    axiosGet('/api/latest-episodes', { params }).then(response => {
+      if (response.data.success) {
+        setAnime(response.data.data.episodes || []);
+        const pagination = response.data.data.pagination;
+        setTotalPages(pagination.totalPages);
+        setTotalItems(pagination.totalItems);
+      }
+    });
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+    setCurrentPage(1);
+    router.push('/');
   };
 
   if (loading && anime.length === 0) {
@@ -112,35 +145,57 @@ export default function Home() {
       <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
         <div className="flex items-center space-x-4">
           <h2 className="text-2xl font-bold text-white">
-            {searchQuery ? `Hasil Pencarian: "${searchQuery}"` : 'Anime Terbaru'}
+            {searchQuery ? `Hasil Pencarian: "${searchQuery}"` : 'Episode Terbaru'}
           </h2>
           {anime.length > 0 && (
-            <span className="text-dark-300">({anime.length} anime)</span>
+            <span className="text-dark-300">({anime.length} episode)</span>
           )}
         </div>
 
-        {/* View Mode Toggle */}
-        <div className="flex items-center space-x-2 bg-dark-800 rounded-lg p-1">
+        <div className="flex items-center space-x-4">
+          {/* Force Refresh Button */}
           <button
-            onClick={() => setViewMode('grid')}
-            className={`p-2 rounded-md transition-colors duration-200 ${
-              viewMode === 'grid'
-                ? 'bg-primary-600 text-white'
-                : 'text-dark-300 hover:text-white hover:bg-dark-700'
-            }`}
+            onClick={handleForceRefresh}
+            className="btn-secondary flex items-center space-x-2"
+            title="Refresh data dari sumber"
           >
-            <FiGrid className="w-5 h-5" />
+            <FiRefreshCw className="w-4 h-4" />
+            <span>Refresh</span>
           </button>
-          <button
-            onClick={() => setViewMode('list')}
-            className={`p-2 rounded-md transition-colors duration-200 ${
-              viewMode === 'list'
-                ? 'bg-primary-600 text-white'
-                : 'text-dark-300 hover:text-white hover:bg-dark-700'
-            }`}
-          >
-            <FiList className="w-5 h-5" />
-          </button>
+
+          {/* Clear Search Button */}
+          {searchQuery && (
+            <button
+              onClick={clearSearch}
+              className="btn-secondary flex items-center space-x-2"
+            >
+              <span>Bersihkan</span>
+            </button>
+          )}
+
+          {/* View Mode Toggle */}
+          <div className="flex items-center space-x-2 bg-dark-800 rounded-lg p-1">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`p-2 rounded-md transition-colors duration-200 ${
+                viewMode === 'grid'
+                  ? 'bg-primary-600 text-white'
+                  : 'text-dark-300 hover:text-white hover:bg-dark-700'
+              }`}
+            >
+              <FiGrid className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-2 rounded-md transition-colors duration-200 ${
+                viewMode === 'list'
+                  ? 'bg-primary-600 text-white'
+                  : 'text-dark-300 hover:text-white hover:bg-dark-700'
+              }`}
+            >
+              <FiList className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -164,9 +219,23 @@ export default function Home() {
                 Sebelumnya
               </button>
               
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                const page = i + 1;
-                return (
+              {/* Show page numbers with better logic */}
+              {(() => {
+                const pages = [];
+                const maxVisiblePages = 5;
+                let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+                let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+                
+                // Adjust start page if we're near the end
+                if (endPage - startPage + 1 < maxVisiblePages) {
+                  startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                }
+                
+                for (let i = startPage; i <= endPage; i++) {
+                  pages.push(i);
+                }
+                
+                return pages.map(page => (
                   <button
                     key={page}
                     onClick={() => handlePageChange(page)}
@@ -178,8 +247,8 @@ export default function Home() {
                   >
                     {page}
                   </button>
-                );
-              })}
+                ));
+              })()}
               
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
@@ -195,12 +264,15 @@ export default function Home() {
         <div className="text-center py-12">
           <div className="text-dark-400 text-6xl mb-4">🔍</div>
           <h3 className="text-xl font-semibold text-white mb-2">Tidak Ada Hasil</h3>
-          <p className="text-dark-300">
+          <p className="text-dark-300 mb-6">
             {searchQuery 
-              ? `Tidak ditemukan anime dengan kata kunci "${searchQuery}"`
-              : 'Belum ada anime yang tersedia'
+              ? `Tidak ditemukan episode dengan kata kunci "${searchQuery}"`
+              : 'Belum ada episode yang tersedia'
             }
           </p>
+          <button onClick={clearSearch} className="btn-primary">
+            Lihat Semua Episode
+          </button>
         </div>
       )}
 

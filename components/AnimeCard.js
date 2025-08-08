@@ -5,7 +5,7 @@ import { FiPlay, FiEye, FiClock } from 'react-icons/fi';
 export default function AnimeCard({ anime, viewMode = 'grid' }) {
   if (viewMode === 'list') {
     return (
-      <Link href={`/anime-detail?url=${encodeURIComponent(anime.link)}`}>
+      <Link href={`/episode-player?url=${encodeURIComponent(anime.link)}&title=${encodeURIComponent(anime.title)}`}>
         <div className="anime-card flex items-center space-x-4 p-4">
           {/* Image */}
           <div className="flex-shrink-0">
@@ -73,7 +73,7 @@ export default function AnimeCard({ anime, viewMode = 'grid' }) {
 
   // Grid mode (default)
   return (
-    <Link href={`/anime-detail?url=${encodeURIComponent(anime.link)}`}>
+    <Link href={`/episode-player?url=${encodeURIComponent(anime.link)}&title=${encodeURIComponent(anime.title)}`}>
       <div className="anime-card group">
         {/* Image Container */}
         <div className="relative overflow-hidden rounded-t-lg">

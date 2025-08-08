@@ -63,8 +63,8 @@ export default function AnimeDetail() {
         <p className="text-dark-300 mb-6">
           Detail anime tidak dapat dimuat.
         </p>
-        <Link href="/" className="btn-primary">
-          Kembali ke Beranda
+        <Link href="/latest" className="btn-primary">
+          Kembali ke Terbaru
         </Link>
       </div>
     );
@@ -75,11 +75,11 @@ export default function AnimeDetail() {
         {/* Back Button */}
         <div className="mb-4">
           <Link 
-            href="/"
+            href="/latest"
             className="inline-flex items-center space-x-2 text-primary-400 hover:text-primary-300 transition-colors duration-200 text-sm"
           >
             <FiArrowLeft className="w-4 h-4" />
-            <span>← Kembali ke Beranda</span>
+            <span>← Kembali ke Terbaru</span>
           </Link>
         </div>
 

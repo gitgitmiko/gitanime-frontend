@@ -38,7 +38,22 @@ export const apiDelete = (endpoint) => apiCall(endpoint, {
 
 // Axios wrapper untuk kompatibilitas
 export const axiosGet = async (endpoint, config = {}) => {
-  const url = `${BACKEND_URL}${endpoint}`;
+  let url = `${BACKEND_URL}${endpoint}`;
+  
+  // Handle query parameters
+  if (config.params) {
+    const searchParams = new URLSearchParams();
+    Object.keys(config.params).forEach(key => {
+      if (config.params[key] !== undefined && config.params[key] !== null && config.params[key] !== '') {
+        searchParams.append(key, config.params[key]);
+      }
+    });
+    const queryString = searchParams.toString();
+    if (queryString) {
+      url += `?${queryString}`;
+    }
+  }
+  
   const response = await fetch(url, {
     method: 'GET',
     headers: {
