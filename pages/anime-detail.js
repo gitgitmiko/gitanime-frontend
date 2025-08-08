@@ -23,16 +23,32 @@ export default function AnimeDetail() {
     try {
       setLoading(true);
       setError(null);
+      
+      console.log('Fetching anime detail for URL:', url);
       const response = await axiosGet(`/api/anime-detail?url=${encodeURIComponent(url)}`);
       
-      if (response.data.success) {
+      console.log('API Response:', response);
+      
+      if (response.data && response.data.success) {
         setAnimeDetail(response.data.data);
       } else {
-        setError(response.data.message || 'Gagal memuat detail anime');
+        const errorMessage = response.data?.message || 'Gagal memuat detail anime';
+        console.error('API returned error:', errorMessage);
+        setError(errorMessage);
       }
     } catch (error) {
       console.error('Error fetching anime detail:', error);
-      setError('Gagal memuat detail anime');
+      let errorMessage = 'Gagal memuat detail anime';
+      
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.status) {
+        errorMessage = `Error ${error.response.status}: ${error.response.statusText}`;
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -40,6 +56,12 @@ export default function AnimeDetail() {
 
   const handleBack = () => {
     router.back();
+  };
+
+  const handleRetry = () => {
+    if (url) {
+      fetchAnimeDetail();
+    }
   };
 
   if (loading) {
@@ -60,12 +82,20 @@ export default function AnimeDetail() {
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
           <h1 className="text-white text-xl mb-2">Terjadi Kesalahan</h1>
           <p className="text-dark-300 mb-4">{error}</p>
-          <button
-            onClick={handleBack}
-            className="btn-primary"
-          >
-            Kembali
-          </button>
+          <div className="flex space-x-4 justify-center">
+            <button
+              onClick={handleRetry}
+              className="btn-primary"
+            >
+              Coba Lagi
+            </button>
+            <button
+              onClick={handleBack}
+              className="btn-secondary"
+            >
+              Kembali
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -80,12 +110,20 @@ export default function AnimeDetail() {
           <p className="text-dark-300 mb-4">
             Detail anime tidak dapat dimuat.
           </p>
-          <button
-            onClick={handleBack}
-            className="btn-primary"
-          >
-            Kembali
-          </button>
+          <div className="flex space-x-4 justify-center">
+            <button
+              onClick={handleRetry}
+              className="btn-primary"
+            >
+              Coba Lagi
+            </button>
+            <button
+              onClick={handleBack}
+              className="btn-secondary"
+            >
+              Kembali
+            </button>
+          </div>
         </div>
       </div>
     );
