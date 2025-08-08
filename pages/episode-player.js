@@ -35,10 +35,16 @@ export default function EpisodePlayer() {
           const proxyUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/api/video-proxy?url=${encodeURIComponent(response.data.data.url)}`;
           setSelectedVideoUrl(proxyUrl);
         } else if (response.data.data.playerOptions && response.data.data.playerOptions.length > 0) {
-          // Set first available video URL
-          const firstAvailable = response.data.data.playerOptions.find(option => option.videoUrl);
-          if (firstAvailable) {
-            const proxyUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/api/video-proxy?url=${encodeURIComponent(firstAvailable.videoUrl)}`;
+          // Try to find player-option-4 first, then fallback to first available
+          let defaultOption = response.data.data.playerOptions.find(option => option.id === 'player-option-4' && option.videoUrl);
+          
+          if (!defaultOption) {
+            // If player-option-4 not found or not available, use first available
+            defaultOption = response.data.data.playerOptions.find(option => option.videoUrl);
+          }
+          
+          if (defaultOption) {
+            const proxyUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/api/video-proxy?url=${encodeURIComponent(defaultOption.videoUrl)}`;
             setSelectedVideoUrl(proxyUrl);
           }
         }
