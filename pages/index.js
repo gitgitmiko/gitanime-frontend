@@ -53,7 +53,7 @@ export default function Home() {
 
   useEffect(() => {
     fetchAnime();
-  }, [fetchAnime]);
+  }, [currentPage, searchQuery]);
 
   const handleSearch = (e) => {
     e.preventDefault();
