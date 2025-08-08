@@ -25,9 +25,15 @@ export default function Admin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [systemStatus, setSystemStatus] = useState({
+    totalAnime: 'Loading...',
+    totalEpisodes: 'Loading...',
+    lastUpdate: 'Loading...'
+  });
 
   useEffect(() => {
     fetchConfig();
+    fetchSystemStatus();
   }, []);
 
   const fetchConfig = async () => {
@@ -55,6 +61,65 @@ export default function Admin() {
       setError('Gagal memuat konfigurasi');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSystemStatus = async () => {
+    try {
+      const response = await axiosGet('/api/scrape');
+      
+      if (response.data) {
+        // Extract data from the response
+        const { lastUpdated, summary } = response.data;
+        
+        // Parse anime count from summary
+        let totalAnime = 'N/A';
+        if (summary?.animeListScraping) {
+          const animeMatch = summary.animeListScraping.match(/(\d+)\s+anime\s+found/);
+          if (animeMatch) {
+            totalAnime = animeMatch[1];
+          }
+        }
+        
+        // Parse episode count from summary
+        let totalEpisodes = 'N/A';
+        if (summary?.latestEpisodesScraping) {
+          const episodeMatch = summary.latestEpisodesScraping.match(/(\d+)\s+episodes\s+found/);
+          if (episodeMatch) {
+            totalEpisodes = episodeMatch[1];
+          }
+        }
+        
+        // Format last update date
+        let formattedLastUpdate = 'N/A';
+        if (lastUpdated) {
+          try {
+            const date = new Date(lastUpdated);
+            formattedLastUpdate = date.toLocaleString('id-ID', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+          } catch (e) {
+            formattedLastUpdate = lastUpdated;
+          }
+        }
+        
+        setSystemStatus({
+          totalAnime,
+          totalEpisodes,
+          lastUpdate: formattedLastUpdate
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching system status:', error);
+      setSystemStatus({
+        totalAnime: 'Error',
+        totalEpisodes: 'Error',
+        lastUpdate: 'Error'
+      });
     }
   };
 
@@ -106,6 +171,10 @@ export default function Admin() {
     try {
       await axiosPost('/api/scrape', { password });
       setSuccess('Scraping berhasil dijalankan! Data akan diperbarui dalam beberapa menit.');
+      // Refresh system status after scraping
+      setTimeout(() => {
+        fetchSystemStatus();
+      }, 2000);
     } catch (error) {
       console.error('Error during scraping:', error);
       setError('Gagal menjalankan scraping');
@@ -236,17 +305,24 @@ export default function Admin() {
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-dark-300">Total Anime:</span>
-              <span className="text-white">Loading...</span>
+              <span className="text-white">{systemStatus.totalAnime}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-dark-300">Total Episode:</span>
-              <span className="text-white">Loading...</span>
+              <span className="text-white">{systemStatus.totalEpisodes}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-dark-300">Last Update:</span>
-              <span className="text-white">Loading...</span>
+              <span className="text-white">{systemStatus.lastUpdate}</span>
             </div>
           </div>
+          <button
+            onClick={fetchSystemStatus}
+            className="btn-secondary mt-4 w-full flex items-center justify-center space-x-2"
+          >
+            <FiRefreshCw className="w-4 h-4" />
+            <span>Refresh Status</span>
+          </button>
         </div>
       </div>
 
