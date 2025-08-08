@@ -32,12 +32,14 @@ export default function EpisodePlayer() {
         setVideoData(response.data.data);
         // Set default video URL if available
         if (response.data.data.url) {
-          setSelectedVideoUrl(response.data.data.url);
+          const proxyUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/api/video-proxy?url=${encodeURIComponent(response.data.data.url)}`;
+          setSelectedVideoUrl(proxyUrl);
         } else if (response.data.data.playerOptions && response.data.data.playerOptions.length > 0) {
           // Set first available video URL
           const firstAvailable = response.data.data.playerOptions.find(option => option.videoUrl);
           if (firstAvailable) {
-            setSelectedVideoUrl(firstAvailable.videoUrl);
+            const proxyUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/api/video-proxy?url=${encodeURIComponent(firstAvailable.videoUrl)}`;
+            setSelectedVideoUrl(proxyUrl);
           }
         }
       } else {
@@ -96,9 +98,8 @@ export default function EpisodePlayer() {
       const urlParts = episodeUrl.split('/');
       const episodeId = urlParts[urlParts.length - 2]; // Get the episode ID
       
-      // Construct direct video URL
-      // This is a fallback method - you might need to adjust based on your backend structure
-      const directUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/api/video/${episodeId}`;
+      // Construct direct video URL using backend proxy
+      const directUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/api/video-proxy?url=${encodeURIComponent(episodeUrl)}`;
       return directUrl;
     } catch (error) {
       console.error('Error constructing direct video URL:', error);
@@ -107,7 +108,9 @@ export default function EpisodePlayer() {
   };
 
   const handleVideoSelect = (videoUrl) => {
-    setSelectedVideoUrl(videoUrl);
+    // Convert video URL to use backend proxy
+    const proxyUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/api/video-proxy?url=${encodeURIComponent(videoUrl)}`;
+    setSelectedVideoUrl(proxyUrl);
   };
 
   const handleBack = () => {
@@ -180,28 +183,34 @@ export default function EpisodePlayer() {
             <div className="card p-6 mb-6">
               <h2 className="text-white text-xl font-semibold mb-4">Pilih Kualitas Video</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {videoData.playerOptions.map((option, index) => (
-                  <button
-                    key={option.id}
-                    onClick={() => handleVideoSelect(option.videoUrl)}
-                    disabled={!option.videoUrl}
-                    className={`p-3 rounded-lg text-sm font-medium transition-colors ${
-                      !option.videoUrl 
-                        ? 'bg-dark-600 text-dark-500 cursor-not-allowed'
-                        : selectedVideoUrl === option.videoUrl
-                        ? 'bg-primary-600 text-white'
-                        : 'bg-dark-700 hover:bg-dark-600 text-dark-300'
-                    }`}
-                  >
-                    {option.text}
-                    {option.videoUrl && (
-                      <div className="text-xs text-green-400 mt-1">✓ Tersedia</div>
-                    )}
-                    {!option.videoUrl && (
-                      <div className="text-xs text-red-400 mt-1">✗ Tidak tersedia</div>
-                    )}
-                  </button>
-                ))}
+                {videoData.playerOptions.map((option, index) => {
+                  const proxyUrl = option.videoUrl ? 
+                    `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/api/video-proxy?url=${encodeURIComponent(option.videoUrl)}` : 
+                    null;
+                  
+                  return (
+                    <button
+                      key={option.id}
+                      onClick={() => handleVideoSelect(option.videoUrl)}
+                      disabled={!option.videoUrl}
+                      className={`p-3 rounded-lg text-sm font-medium transition-colors ${
+                        !option.videoUrl 
+                          ? 'bg-dark-600 text-dark-500 cursor-not-allowed'
+                          : selectedVideoUrl === proxyUrl
+                          ? 'bg-primary-600 text-white'
+                          : 'bg-dark-700 hover:bg-dark-600 text-dark-300'
+                      }`}
+                    >
+                      {option.text}
+                      {option.videoUrl && (
+                        <div className="text-xs text-green-400 mt-1">✓ Tersedia</div>
+                      )}
+                      {!option.videoUrl && (
+                        <div className="text-xs text-red-400 mt-1">✗ Tidak tersedia</div>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
