@@ -155,10 +155,10 @@ export default function AnimeDetail() {
             <div className="flex flex-col lg:flex-row gap-6">
               {/* Anime Image */}
               <div className="flex-shrink-0">
-                {(animeDetail.episodeScreenshot || animeDetail.image) ? (
+                {(animeDetail.imageUrl || animeDetail.episodeScreenshot || animeDetail.image) ? (
                   <div className="w-48 h-64 relative rounded-lg overflow-hidden">
                     <Image
-                      src={animeDetail.episodeScreenshot || animeDetail.image || 'https://via.placeholder.com/192x256/1f2937/6b7280?text=No+Image'}
+                      src={animeDetail.imageUrl || animeDetail.episodeScreenshot || animeDetail.image || 'https://via.placeholder.com/192x256/1f2937/6b7280?text=No+Image'}
                       alt={animeDetail.title}
                       fill
                       className="object-cover"
@@ -180,8 +180,6 @@ export default function AnimeDetail() {
 
               {/* Anime Info */}
               <div className="flex-1">
-                <h1 className="text-2xl md:text-3xl font-bold text-white mb-4">{animeDetail.title}</h1>
-                
                 {animeDetail.japanese && (
                   <p className="text-dark-300 mb-2">
                     <strong className="text-white">Japanese:</strong> {animeDetail.japanese}
