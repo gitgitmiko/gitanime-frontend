@@ -9,28 +9,34 @@ export default function AnimeCard({ anime, viewMode = 'grid' }) {
         <div className="anime-card flex items-center space-x-4 p-4">
           {/* Image */}
           <div className="flex-shrink-0">
-                      {(anime.episodeScreenshot || anime.image) ? (
-            <div className="relative w-20 h-28 rounded-lg overflow-hidden">
-              <Image
-                src={anime.episodeScreenshot || anime.image || 'https://via.placeholder.com/80x112/1f2937/6b7280?text=No+Image'}
-                alt={anime.title}
-                fill
-                className="object-cover"
-                sizes="80px"
-                onError={(e) => {
-                  e.target.src = 'https://via.placeholder.com/80x112/1f2937/6b7280?text=No+Image';
-                }}
-                onLoad={(e) => {
-                  e.target.style.opacity = '1';
-                }}
-                style={{ opacity: 0, transition: 'opacity 0.3s ease-in-out' }}
-              />
-            </div>
-          ) : (
-            <div className="w-20 h-28 bg-dark-700 rounded-lg flex items-center justify-center">
-              <FiPlay className="w-8 h-8 text-dark-400" />
-            </div>
-          )}
+            {(anime.episodeScreenshot || anime.image) ? (
+              <div className="relative w-20 h-28 rounded-lg overflow-hidden">
+                <Image
+                  src={anime.episodeScreenshot || anime.image}
+                  alt={anime.title}
+                  fill
+                  className="object-cover"
+                  sizes="80px"
+                  onError={(e) => {
+                    // Hide the image on error and show fallback
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                  onLoad={(e) => {
+                    e.target.style.opacity = '1';
+                  }}
+                  style={{ opacity: 0, transition: 'opacity 0.3s ease-in-out' }}
+                />
+                {/* Fallback div */}
+                <div className="w-20 h-28 bg-dark-700 rounded-lg flex items-center justify-center" style={{ display: 'none' }}>
+                  <FiPlay className="w-8 h-8 text-dark-400" />
+                </div>
+              </div>
+            ) : (
+              <div className="w-20 h-28 bg-dark-700 rounded-lg flex items-center justify-center">
+                <FiPlay className="w-8 h-8 text-dark-400" />
+              </div>
+            )}
           </div>
 
           {/* Content */}
@@ -41,23 +47,23 @@ export default function AnimeCard({ anime, viewMode = 'grid' }) {
             {anime.altTitle && (
               <p className="text-sm text-dark-300 mb-2">{anime.altTitle}</p>
             )}
-                         <div className="flex items-center space-x-4 text-sm text-dark-400">
-               <span className="flex items-center space-x-1">
-                 <FiEye className="w-4 h-4" />
-                 <span>Episode {anime.episodeNumber || 'N/A'}</span>
-               </span>
-               {anime.postedBy && (
-                 <span className="text-primary-400">
-                   by {anime.postedBy}
-                 </span>
-               )}
-               {anime.releasedOn && (
-                 <span className="flex items-center space-x-1">
-                   <FiClock className="w-4 h-4" />
-                   <span>{anime.releasedOn}</span>
-                 </span>
-               )}
-             </div>
+            <div className="flex items-center space-x-4 text-sm text-dark-400">
+              <span className="flex items-center space-x-1">
+                <FiEye className="w-4 h-4" />
+                <span>Episode {anime.episodeNumber || 'N/A'}</span>
+              </span>
+              {anime.postedBy && (
+                <span className="text-primary-400">
+                  by {anime.postedBy}
+                </span>
+              )}
+              {anime.releasedOn && (
+                <span className="flex items-center space-x-1">
+                  <FiClock className="w-4 h-4" />
+                  <span>{anime.releasedOn}</span>
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Play Button */}
@@ -80,19 +86,25 @@ export default function AnimeCard({ anime, viewMode = 'grid' }) {
           {(anime.episodeScreenshot || anime.image) ? (
             <div className="relative w-full h-48">
               <Image
-                src={anime.episodeScreenshot || anime.image || 'https://via.placeholder.com/300x200/1f2937/6b7280?text=No+Image'}
+                src={anime.episodeScreenshot || anime.image}
                 alt={anime.title}
                 fill
                 className="anime-image object-cover"
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 onError={(e) => {
-                  e.target.src = 'https://via.placeholder.com/300x200/1f2937/6b7280?text=No+Image';
+                  // Hide the image on error and show fallback
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
                 }}
                 onLoad={(e) => {
                   e.target.style.opacity = '1';
                 }}
                 style={{ opacity: 0, transition: 'opacity 0.3s ease-in-out' }}
               />
+              {/* Fallback div */}
+              <div className="w-full h-48 bg-dark-700 flex items-center justify-center" style={{ display: 'none' }}>
+                <FiPlay className="w-16 h-16 text-dark-400" />
+              </div>
             </div>
           ) : (
             <div className="w-full h-48 bg-dark-700 flex items-center justify-center">
