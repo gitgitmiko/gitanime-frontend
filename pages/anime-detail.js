@@ -30,7 +30,39 @@ export default function AnimeDetail() {
       console.log('API Response:', response);
       
       if (response.data && response.data.success) {
-        setAnimeDetail(response.data.data);
+        const detailData = response.data.data;
+        
+        // Try to get imageUrl from anime-list API
+        try {
+          const animeListResponse = await axiosGet('/api/anime-list', {
+            params: {
+              search: detailData.title,
+              limit: 1
+            }
+          });
+          
+          console.log('Anime List Response:', animeListResponse);
+          
+          if (animeListResponse.data && animeListResponse.data.success && 
+              animeListResponse.data.data.anime && animeListResponse.data.data.anime.length > 0) {
+            
+            const matchingAnime = animeListResponse.data.data.anime.find(anime => 
+              anime.title && detailData.title && 
+              anime.title.toLowerCase().includes(detailData.title.toLowerCase()) ||
+              detailData.title.toLowerCase().includes(anime.title.toLowerCase())
+            );
+            
+            if (matchingAnime && matchingAnime.imageUrl) {
+              console.log('Found matching anime with imageUrl:', matchingAnime.imageUrl);
+              detailData.imageUrl = matchingAnime.imageUrl;
+            }
+          }
+        } catch (listError) {
+          console.log('Could not fetch from anime-list API:', listError);
+          // Continue without imageUrl
+        }
+        
+        setAnimeDetail(detailData);
       } else {
         const errorMessage = response.data?.message || 'Gagal memuat detail anime';
         console.error('API returned error:', errorMessage);
