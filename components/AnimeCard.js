@@ -26,17 +26,17 @@ export default function AnimeCard({ anime, viewMode = 'grid' }) {
   if (viewMode === 'list') {
     return (
       <Link href={`/episode-player?url=${encodeURIComponent(episodeUrl)}&title=${encodeURIComponent(anime.title)}`}>
-        <div className="anime-card flex items-center space-x-4 p-4">
+        <div className="anime-card flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg hover:bg-dark-700 transition-colors duration-200">
           {/* Image */}
           <div className="flex-shrink-0">
             {imageUrl ? (
-              <div className="relative w-20 h-28 rounded-lg overflow-hidden">
+              <div className="relative w-16 h-20 sm:w-20 sm:h-28 rounded-lg overflow-hidden">
                 <Image
                   src={imageUrl}
                   alt={anime.title}
                   fill
                   className="object-cover"
-                  sizes="80px"
+                  sizes="(max-width: 640px) 64px, 80px"
                   onError={(e) => {
                     // Hide the image on error and show fallback
                     e.target.style.display = 'none';
@@ -48,28 +48,28 @@ export default function AnimeCard({ anime, viewMode = 'grid' }) {
                   style={{ opacity: 0, transition: 'opacity 0.3s ease-in-out' }}
                 />
                 {/* Fallback div */}
-                <div className="w-20 h-28 bg-dark-700 rounded-lg flex items-center justify-center" style={{ display: 'none' }}>
-                  <FiPlay className="w-8 h-8 text-dark-400" />
+                <div className="w-16 h-20 sm:w-20 sm:h-28 bg-dark-700 rounded-lg flex items-center justify-center" style={{ display: 'none' }}>
+                  <FiPlay className="w-6 h-6 sm:w-8 sm:h-8 text-dark-400" />
                 </div>
               </div>
             ) : (
-              <div className="w-20 h-28 bg-dark-700 rounded-lg flex items-center justify-center">
-                <FiPlay className="w-8 h-8 text-dark-400" />
+              <div className="w-16 h-20 sm:w-20 sm:h-28 bg-dark-700 rounded-lg flex items-center justify-center">
+                <FiPlay className="w-6 h-6 sm:w-8 sm:h-8 text-dark-400" />
               </div>
             )}
           </div>
 
           {/* Content */}
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-semibold text-white truncate mb-1">
+            <h3 className="text-base sm:text-lg font-semibold text-white truncate mb-1">
               {anime.title}
             </h3>
             {anime.altTitle && (
-              <p className="text-sm text-dark-300 mb-2">{anime.altTitle}</p>
+              <p className="text-xs sm:text-sm text-dark-300 mb-2 line-clamp-1">{anime.altTitle}</p>
             )}
-            <div className="flex items-center space-x-4 text-sm text-dark-400">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-1 sm:space-y-0 text-xs sm:text-sm text-dark-400">
               <span className="flex items-center space-x-1">
-                <FiEye className="w-4 h-4" />
+                <FiEye className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span>Episode {anime.episodeNumber || 'N/A'}</span>
               </span>
               {anime.postedBy && (
@@ -79,7 +79,7 @@ export default function AnimeCard({ anime, viewMode = 'grid' }) {
               )}
               {anime.releasedOn && (
                 <span className="flex items-center space-x-1">
-                  <FiClock className="w-4 h-4" />
+                  <FiClock className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span>{anime.releasedOn}</span>
                 </span>
               )}
@@ -100,11 +100,11 @@ export default function AnimeCard({ anime, viewMode = 'grid' }) {
   // Grid mode (default)
   return (
     <Link href={`/episode-player?url=${encodeURIComponent(episodeUrl)}&title=${encodeURIComponent(anime.title)}`}>
-      <div className="anime-card group">
+      <div className="anime-card group rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300">
         {/* Image Container */}
-        <div className="relative overflow-hidden rounded-t-lg">
+        <div className="relative overflow-hidden">
           {imageUrl ? (
-            <div className="relative w-full h-48">
+            <div className="relative w-full h-40 sm:h-48">
               <Image
                 src={imageUrl}
                 alt={anime.title}
@@ -122,27 +122,27 @@ export default function AnimeCard({ anime, viewMode = 'grid' }) {
                 style={{ opacity: 0, transition: 'opacity 0.3s ease-in-out' }}
               />
               {/* Fallback div */}
-              <div className="w-full h-48 bg-dark-700 flex items-center justify-center" style={{ display: 'none' }}>
-                <FiPlay className="w-16 h-16 text-dark-400" />
+              <div className="w-full h-40 sm:h-48 bg-dark-700 flex items-center justify-center" style={{ display: 'none' }}>
+                <FiPlay className="w-12 h-12 sm:w-16 sm:h-16 text-dark-400" />
               </div>
             </div>
           ) : (
-            <div className="w-full h-48 bg-dark-700 flex items-center justify-center">
-              <FiPlay className="w-16 h-16 text-dark-400" />
+            <div className="w-full h-40 sm:h-48 bg-dark-700 flex items-center justify-center">
+              <FiPlay className="w-12 h-12 sm:w-16 sm:h-16 text-dark-400" />
             </div>
           )}
           
           {/* Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <div className="absolute bottom-4 left-4 right-4">
+            <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center">
-                    <FiPlay className="w-4 h-4 text-white" />
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary-600 rounded-full flex items-center justify-center">
+                    <FiPlay className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                   </div>
-                  <span className="text-white text-sm font-medium">Tonton</span>
+                  <span className="text-white text-xs sm:text-sm font-medium">Tonton</span>
                 </div>
-                <div className="text-white text-sm">
+                <div className="text-white text-xs sm:text-sm">
                   Episode {anime.episodeNumber || 'N/A'}
                 </div>
               </div>
@@ -166,36 +166,36 @@ export default function AnimeCard({ anime, viewMode = 'grid' }) {
         </div>
 
         {/* Content */}
-        <div className="p-4">
-          <h3 className="text-lg font-semibold text-white mb-2 line-clamp-2 group-hover:text-primary-400 transition-colors duration-200">
+        <div className="p-3 sm:p-4">
+          <h3 className="text-sm sm:text-lg font-semibold text-white mb-2 line-clamp-2 group-hover:text-primary-400 transition-colors duration-200">
             {anime.title}
           </h3>
           
           {anime.altTitle && (
-            <p className="text-sm text-dark-300 mb-3 line-clamp-1">
+            <p className="text-xs sm:text-sm text-dark-300 mb-3 line-clamp-1">
               {anime.altTitle}
             </p>
           )}
 
-                     <div className="flex items-center justify-between text-sm text-dark-400">
-             <div className="flex items-center space-x-2">
-               <FiEye className="w-4 h-4" />
-               <span>Episode {anime.episodeNumber || 'N/A'}</span>
-             </div>
-             <div className="flex items-center space-x-2">
-               {anime.postedBy && (
-                 <span className="text-primary-400 text-xs">
-                   by {anime.postedBy}
-                 </span>
-               )}
-               {anime.releasedOn && (
-                 <>
-                   <FiClock className="w-4 h-4" />
-                   <span>{anime.releasedOn}</span>
-                 </>
-               )}
-             </div>
-           </div>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-1 sm:space-y-0 text-xs sm:text-sm text-dark-400">
+            <div className="flex items-center space-x-2">
+              <FiEye className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span>Episode {anime.episodeNumber || 'N/A'}</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              {anime.postedBy && (
+                <span className="text-primary-400 text-xs">
+                  by {anime.postedBy}
+                </span>
+              )}
+              {anime.releasedOn && (
+                <>
+                  <FiClock className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span>{anime.releasedOn}</span>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </Link>
