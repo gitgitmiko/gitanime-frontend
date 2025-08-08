@@ -15,16 +15,24 @@ export default function AnimeCard({ anime, viewMode = 'grid' }) {
 
   const episodeUrl = constructEpisodeUrl();
 
+  // Get the best available image URL
+  const getImageUrl = () => {
+    // Priority: imageUrl > episodeScreenshot > image
+    return anime.imageUrl || anime.episodeScreenshot || anime.image;
+  };
+
+  const imageUrl = getImageUrl();
+
   if (viewMode === 'list') {
     return (
       <Link href={`/episode-player?url=${encodeURIComponent(episodeUrl)}&title=${encodeURIComponent(anime.title)}`}>
         <div className="anime-card flex items-center space-x-4 p-4">
           {/* Image */}
           <div className="flex-shrink-0">
-            {(anime.episodeScreenshot || anime.image) ? (
+            {imageUrl ? (
               <div className="relative w-20 h-28 rounded-lg overflow-hidden">
                 <Image
-                  src={anime.episodeScreenshot || anime.image}
+                  src={imageUrl}
                   alt={anime.title}
                   fill
                   className="object-cover"
@@ -95,10 +103,10 @@ export default function AnimeCard({ anime, viewMode = 'grid' }) {
       <div className="anime-card group">
         {/* Image Container */}
         <div className="relative overflow-hidden rounded-t-lg">
-          {(anime.episodeScreenshot || anime.image) ? (
+          {imageUrl ? (
             <div className="relative w-full h-48">
               <Image
-                src={anime.episodeScreenshot || anime.image}
+                src={imageUrl}
                 alt={anime.title}
                 fill
                 className="anime-image object-cover"
