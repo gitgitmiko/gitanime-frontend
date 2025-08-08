@@ -30,12 +30,9 @@ export default function EpisodePlayer() {
       
       if (response.data.success) {
         setVideoData(response.data.data);
-        // Set default video URL if available
-        if (response.data.data.url) {
-          const proxyUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/api/video-proxy?url=${encodeURIComponent(response.data.data.url)}`;
-          setSelectedVideoUrl(proxyUrl);
-        } else if (response.data.data.playerOptions && response.data.data.playerOptions.length > 0) {
-          // Try to find player-option-4 first, then fallback to first available
+        
+        // Directly try to find player-option-4 first, then fallback to first available
+        if (response.data.data.playerOptions && response.data.data.playerOptions.length > 0) {
           let defaultOption = response.data.data.playerOptions.find(option => option.id === 'player-option-4' && option.videoUrl);
           
           if (!defaultOption) {
@@ -47,6 +44,10 @@ export default function EpisodePlayer() {
             const proxyUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/api/video-proxy?url=${encodeURIComponent(defaultOption.videoUrl)}`;
             setSelectedVideoUrl(proxyUrl);
           }
+        } else if (response.data.data.url) {
+          // Fallback to default URL only if no player options available
+          const proxyUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/api/video-proxy?url=${encodeURIComponent(response.data.data.url)}`;
+          setSelectedVideoUrl(proxyUrl);
         }
       } else {
         // If API fails, try to construct video URL directly from the episode URL
