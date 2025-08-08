@@ -214,11 +214,11 @@ export default function AnimeDetail() {
                     </div>
                   )}
 
-                  {animeDetail.episodes && (
+                  {animeDetail.totalEpisodes && (
                     <div className="flex items-center space-x-2">
                       <FiCalendar className="w-4 h-4 text-primary-400" />
                       <span className="text-dark-300">
-                        <strong className="text-white">Episodes:</strong> {animeDetail.episodes}
+                        <strong className="text-white">Total Episodes:</strong> {animeDetail.totalEpisodes}
                       </span>
                     </div>
                   )}
@@ -257,7 +257,7 @@ export default function AnimeDetail() {
                     <h3 className="text-white font-semibold mb-2">Genres:</h3>
                     <div className="flex flex-wrap gap-2">
                       {animeDetail.genres.map((genre, index) => (
-                        <span key={index} className="bg-primary-600 text-white px-3 py-1 rounded-full text-sm">
+                        <span key={`genre-${index}-${genre}`} className="bg-primary-600 text-white px-3 py-1 rounded-full text-sm">
                           {genre}
                         </span>
                       ))}
@@ -279,27 +279,34 @@ export default function AnimeDetail() {
           </div>
 
           {/* Episodes List */}
-          {animeDetail.episodes && animeDetail.episodes.length > 0 && (
+          {animeDetail.episodes && Array.isArray(animeDetail.episodes) && animeDetail.episodes.length > 0 && (
             <div className="card p-6">
               <h2 className="text-white text-xl font-semibold mb-4">Daftar Episode</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {animeDetail.episodes.map((episode, index) => (
-                  <Link
-                    key={episode.id || index}
-                    href={`/episode-player?url=${encodeURIComponent(episode.url)}&title=${encodeURIComponent(animeDetail.title)}`}
-                    className="block p-4 bg-dark-700 rounded-lg hover:bg-dark-600 transition-colors duration-200"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-white font-medium">Episode {episode.episodeNumber || index + 1}</h3>
-                        {episode.title && (
-                          <p className="text-dark-300 text-sm mt-1">{episode.title}</p>
-                        )}
+                {animeDetail.episodes.map((episode, index) => {
+                  const episodeKey = episode.id || episode.url || `episode-${index}`;
+                  const episodeUrl = episode.url || episode.link;
+                  
+                  return (
+                    <Link
+                      key={episodeKey}
+                      href={`/episode-player?url=${encodeURIComponent(episodeUrl)}&title=${encodeURIComponent(animeDetail.title)}`}
+                      className="block p-4 bg-dark-700 rounded-lg hover:bg-dark-600 transition-colors duration-200"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-white font-medium">
+                            Episode {episode.episodeNumber || episode.number || index + 1}
+                          </h3>
+                          {episode.title && (
+                            <p className="text-dark-300 text-sm mt-1">{episode.title}</p>
+                          )}
+                        </div>
+                        <FiPlay className="w-5 h-5 text-primary-400" />
                       </div>
-                      <FiPlay className="w-5 h-5 text-primary-400" />
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           )}
