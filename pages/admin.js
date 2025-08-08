@@ -33,7 +33,23 @@ export default function Admin() {
   const fetchConfig = async () => {
     try {
       const response = await axiosGet('/api/config');
-      setConfig(response.data);
+      
+      // Ensure all required properties exist with default values
+      const fetchedConfig = response.data || {};
+      setConfig({
+        samehadakuUrl: fetchedConfig.samehadakuUrl || 'https://v1.samehadaku.how/',
+        enableAds: fetchedConfig.enableAds || false,
+        adsConfig: {
+          headerAd: fetchedConfig.adsConfig?.headerAd || '',
+          sidebarAd: fetchedConfig.adsConfig?.sidebarAd || '',
+          videoAd: fetchedConfig.adsConfig?.videoAd || ''
+        },
+        playerConfig: {
+          autoplay: fetchedConfig.playerConfig?.autoplay || false,
+          quality: fetchedConfig.playerConfig?.quality || 'auto',
+          subtitle: fetchedConfig.playerConfig?.subtitle !== undefined ? fetchedConfig.playerConfig.subtitle : true
+        }
+      });
     } catch (error) {
       console.error('Error fetching config:', error);
       setError('Gagal memuat konfigurasi');
@@ -249,7 +265,7 @@ export default function Admin() {
             </label>
             <input
               type="url"
-              value={config.samehadakuUrl}
+              value={config.samehadakuUrl || ''}
               onChange={(e) => setConfig(prev => ({ ...prev, samehadakuUrl: e.target.value }))}
               className="input-field w-full"
               placeholder="https://v1.samehadaku.how/"
@@ -273,7 +289,7 @@ export default function Admin() {
               <input
                 type="checkbox"
                 id="enableAds"
-                checked={config.enableAds}
+                checked={config.enableAds || false}
                 onChange={(e) => setConfig(prev => ({ ...prev, enableAds: e.target.checked }))}
                 className="w-4 h-4 text-primary-600 bg-dark-700 border-dark-600 rounded focus:ring-primary-500"
               />
@@ -282,14 +298,14 @@ export default function Admin() {
               </label>
             </div>
 
-            {config.enableAds && (
+            {(config.enableAds || false) && (
               <div className="space-y-4 pl-7">
                 <div>
                   <label className="block text-sm font-medium text-white mb-2">
                     Header Ad (HTML)
                   </label>
                   <textarea
-                    value={config.adsConfig.headerAd}
+                    value={config.adsConfig?.headerAd || ''}
                     onChange={(e) => handleInputChange('adsConfig', 'headerAd', e.target.value)}
                     className="input-field w-full h-20"
                     placeholder="<div>Header Advertisement</div>"
@@ -301,7 +317,7 @@ export default function Admin() {
                     Sidebar Ad (HTML)
                   </label>
                   <textarea
-                    value={config.adsConfig.sidebarAd}
+                    value={config.adsConfig?.sidebarAd || ''}
                     onChange={(e) => handleInputChange('adsConfig', 'sidebarAd', e.target.value)}
                     className="input-field w-full h-20"
                     placeholder="<div>Sidebar Advertisement</div>"
@@ -313,7 +329,7 @@ export default function Admin() {
                     Video Ad (HTML)
                   </label>
                   <textarea
-                    value={config.adsConfig.videoAd}
+                    value={config.adsConfig?.videoAd || ''}
                     onChange={(e) => handleInputChange('adsConfig', 'videoAd', e.target.value)}
                     className="input-field w-full h-20"
                     placeholder="<div>Video Advertisement</div>"
@@ -337,7 +353,7 @@ export default function Admin() {
                 Autoplay
               </label>
               <select
-                value={config.playerConfig.autoplay ? 'true' : 'false'}
+                value={(config.playerConfig?.autoplay || false) ? 'true' : 'false'}
                 onChange={(e) => handleInputChange('playerConfig', 'autoplay', e.target.value === 'true')}
                 className="input-field w-full"
               >
@@ -351,7 +367,7 @@ export default function Admin() {
                 Kualitas Default
               </label>
               <select
-                value={config.playerConfig.quality}
+                value={config.playerConfig?.quality || 'auto'}
                 onChange={(e) => handleInputChange('playerConfig', 'quality', e.target.value)}
                 className="input-field w-full"
               >
@@ -367,7 +383,7 @@ export default function Admin() {
                 Subtitle
               </label>
               <select
-                value={config.playerConfig.subtitle ? 'true' : 'false'}
+                value={(config.playerConfig?.subtitle !== undefined ? config.playerConfig.subtitle : true) ? 'true' : 'false'}
                 onChange={(e) => handleInputChange('playerConfig', 'subtitle', e.target.value === 'true')}
                 className="input-field w-full"
               >
