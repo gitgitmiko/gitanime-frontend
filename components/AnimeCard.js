@@ -3,9 +3,21 @@ import Image from 'next/image';
 import { FiPlay, FiEye, FiClock } from 'react-icons/fi';
 
 export default function AnimeCard({ anime, viewMode = 'grid' }) {
+  // Construct the correct episode URL
+  const constructEpisodeUrl = () => {
+    if (anime.id) {
+      // Use the episode ID to construct the correct URL
+      return `https://v1.samehadaku.how/${anime.id}/`;
+    }
+    // Fallback to original link if no ID
+    return anime.link;
+  };
+
+  const episodeUrl = constructEpisodeUrl();
+
   if (viewMode === 'list') {
     return (
-      <Link href={`/episode-player?url=${encodeURIComponent(anime.link)}&title=${encodeURIComponent(anime.title)}`}>
+      <Link href={`/episode-player?url=${encodeURIComponent(episodeUrl)}&title=${encodeURIComponent(anime.title)}`}>
         <div className="anime-card flex items-center space-x-4 p-4">
           {/* Image */}
           <div className="flex-shrink-0">
@@ -79,7 +91,7 @@ export default function AnimeCard({ anime, viewMode = 'grid' }) {
 
   // Grid mode (default)
   return (
-    <Link href={`/episode-player?url=${encodeURIComponent(anime.link)}&title=${encodeURIComponent(anime.title)}`}>
+    <Link href={`/episode-player?url=${encodeURIComponent(episodeUrl)}&title=${encodeURIComponent(anime.title)}`}>
       <div className="anime-card group">
         {/* Image Container */}
         <div className="relative overflow-hidden rounded-t-lg">
