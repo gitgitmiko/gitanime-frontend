@@ -26,7 +26,6 @@ Deploy di Vercel sebagai Next.js application.
 ## Pages
 
 - `/` - Halaman utama
-- `/latest` - Anime terbaru
 - `/anime` - Semua anime
 - `/anime/[id]` - Detail anime
 - `/episode/[id]` - Player episode

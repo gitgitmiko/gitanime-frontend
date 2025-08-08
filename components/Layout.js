@@ -24,7 +24,6 @@ export default function Layout({ children }) {
   const navigation = [
     { name: 'Beranda', href: '/', icon: FiHome },
     { name: 'Anime', href: '/anime', icon: FiPlay },
-    { name: 'Terbaru', href: '/latest', icon: FiPlay },
     { name: 'Admin', href: '/admin', icon: FiSettings },
   ];
 
@@ -200,14 +199,6 @@ export default function Layout({ children }) {
                       className="text-dark-300 hover:text-primary-400 transition-colors duration-200"
                     >
                       Katalog Anime
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/latest"
-                      className="text-dark-300 hover:text-primary-400 transition-colors duration-200"
-                    >
-                      Episode Terbaru
                     </Link>
                   </li>
                   <li>
