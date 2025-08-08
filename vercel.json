@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "env": {
+    "NEXT_PUBLIC_BACKEND_URL": "https://backend-kiw5pyvvf-gitgitmikos-projects.vercel.app"
+  },
+  "redirects": [
+    {
+      "source": "/gitanime/api/:path*",
+      "destination": "https://backend-kiw5pyvvf-gitgitmikos-projects.vercel.app/api/:path*",
+      "permanent": false
+    }
+  ]
+}
