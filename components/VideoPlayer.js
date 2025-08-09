@@ -226,7 +226,7 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
       <div className="relative pt-[56.25%]">
         {/* Back button overlay (mobile-friendly). Muncul saat fullscreen dan controls terlihat */}
         {isFullscreen && showControls && (
-          <div className="absolute top-3 left-3 z-20">
+          <div className="absolute top-3 left-3 z-30">
             <button
               onClick={async () => {
                 if (isFullscreen) {
@@ -295,7 +295,7 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
 
         {/* Custom Controls */}
         {showControls && (
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 sm:p-4">
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 sm:p-4 z-20">
             {/* Progress Bar */}
             <div className="mb-3 sm:mb-4 select-none">
               <input
@@ -408,7 +408,7 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
         )}
 
         {/* Title Overlay */}
-        <div className="absolute top-3 left-3 right-3 sm:top-4 sm:left-4 sm:right-4">
+        <div className="absolute top-3 left-3 right-3 sm:top-4 sm:left-4 sm:right-4 z-20">
           <h3 className="text-white text-sm sm:text-base font-medium text-shadow-lg">
             {title}
           </h3>
