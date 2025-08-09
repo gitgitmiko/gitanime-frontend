@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { FiSettings, FiRefreshCw, FiSave, FiEye, FiEyeOff, FiLink, FiMonitor } from 'react-icons/fi';
 import { axiosGet, axiosPost, axiosPut } from '../utils/api';
 import LoadingSpinner from '../components/LoadingSpinner';
+import Head from 'next/head';
 
 export default function Admin() {
   const [config, setConfig] = useState({
@@ -183,6 +184,9 @@ export default function Admin() {
   if (!isAuthenticated) {
     return (
       <div className="max-w-md mx-auto py-12">
+        <Head>
+          <meta name="robots" content="noindex,nofollow" />
+        </Head>
         <div className="card p-8">
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -224,6 +228,9 @@ export default function Admin() {
 
   return (
     <div className="space-y-8">
+      <Head>
+        <meta name="robots" content="noindex,nofollow" />
+      </Head>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
