@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import ReactPlayer from 'react-player';
-import { FiPlay, FiPause, FiVolume2, FiVolumeX, FiMaximize, FiSettings, FiRotateCw } from 'react-icons/fi';
+import { FiPlay, FiPause, FiVolume2, FiVolumeX, FiMaximize, FiSettings, FiRotateCw, FiChevronLeft } from 'react-icons/fi';
 
 export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
   const [playing, setPlaying] = useState(false);
@@ -111,7 +111,16 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
   useEffect(() => {
     const onFsChange = () => {
       const fsElement = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
-      setIsFullscreen(Boolean(fsElement));
+      const nowFullscreen = Boolean(fsElement);
+      setIsFullscreen(nowFullscreen);
+      // Tampilkan kontrol sementara saat masuk fullscreen agar tombol Back terlihat
+      if (nowFullscreen) {
+        setShowControls(true);
+        if (hideControlsTimeoutRef.current) clearTimeout(hideControlsTimeoutRef.current);
+        if (playing) {
+          hideControlsTimeoutRef.current = setTimeout(() => setShowControls(false), 2500);
+        }
+      }
     };
     document.addEventListener('fullscreenchange', onFsChange);
     document.addEventListener('webkitfullscreenchange', onFsChange);
@@ -213,6 +222,25 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
     >
       {/* Aspect ratio wrapper */}
       <div className="relative pt-[56.25%]">
+        {/* Back button overlay (mobile-friendly). Muncul saat fullscreen dan controls terlihat */}
+        {isFullscreen && showControls && (
+          <div className="absolute top-3 left-3 z-20">
+            <button
+              onClick={async () => {
+                if (isFullscreen) {
+                  await exitFullscreen();
+                } else if (window.history && window.history.length > 1) {
+                  window.history.back();
+                }
+              }}
+              className="flex items-center space-x-2 bg-black/60 hover:bg-black/70 text-white px-3 py-2 rounded-md"
+            >
+              <FiChevronLeft className="w-5 h-5" />
+              <span className="text-sm">Kembali</span>
+            </button>
+          </div>
+        )}
+
         <ReactPlayer
           ref={playerRef}
           url={videoUrl}
