@@ -118,6 +118,23 @@ export default function Home() {
         {router.asPath.includes('?search=') && (
           <meta name="robots" content="noindex,follow" />
         )}
+        {/* JSON-LD: WebSite + SearchAction */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'WebSite',
+              name: 'GitAnime',
+              url: 'https://gitanime-web.vercel.app/',
+              potentialAction: {
+                '@type': 'SearchAction',
+                target: 'https://gitanime-web.vercel.app/?search={search_term_string}',
+                'query-input': 'required name=search_term_string'
+              }
+            }),
+          }}
+        />
       </Head>
       {/* Hero Section */}
       <div className="text-center py-12">
