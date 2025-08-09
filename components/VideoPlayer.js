@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import ReactPlayer from 'react-player';
 import { FiPlay, FiPause, FiVolume2, FiVolumeX, FiMaximize, FiSettings, FiRotateCw } from 'react-icons/fi';
 
-export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
+export default function VideoPlayer({ videoUrl, originalVideoUrl, title, onOpenSettings, onBypassProxy }) {
   const [playing, setPlaying] = useState(false);
   const [volume, setVolume] = useState(0.8);
   const [muted, setMuted] = useState(false);
@@ -19,6 +19,7 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
   const containerRef = useRef(null);
   const playerRef = useRef(null);
   const hideControlsTimeoutRef = useRef(null);
+  const lastSeekFractionRef = useRef(null);
 
   useEffect(() => {
     if (videoUrl) {
@@ -27,6 +28,7 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
       setPlayed(0);
       setPlaybackRate(1);
       setShowSettings(false);
+      lastSeekFractionRef.current = null;
     }
   }, [videoUrl]);
 
@@ -48,6 +50,7 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
     const newTime = parseFloat(e.target.value);
     setPlayed(newTime);
     setSeeking(true);
+    lastSeekFractionRef.current = newTime;
   };
 
   const handleSeekMouseDown = () => {
@@ -216,6 +219,15 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
           onProgress={handleProgress}
           onDuration={handleDuration}
           onError={handleError}
+          onSeek={(seconds) => {
+            // Sync slider after programmatic seek
+            if (duration > 0 && typeof seconds === 'number') {
+              const fraction = seconds / duration;
+              if (!Number.isNaN(fraction)) {
+                setPlayed(Math.max(0, Math.min(1, fraction)));
+              }
+            }
+          }}
           width="100%"
           height="100%"
           style={{ position: 'absolute', top: 0, left: 0 }}
@@ -234,7 +246,7 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
         {showControls && (
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 sm:p-4">
             {/* Progress Bar */}
-            <div className="mb-3 sm:mb-4">
+            <div className="mb-3 sm:mb-4 select-none">
               <input
                 type="range"
                 min={0}
@@ -289,6 +301,13 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
                 <button onClick={handleSettingsClick} className="text-white hover:text-primary-400 transition-colors duration-200">
                   <FiSettings className="w-5 h-5" />
                 </button>
+
+                {/* Bypass Proxy if needed */}
+                {originalVideoUrl && onBypassProxy && (
+                  <button onClick={onBypassProxy} className="hidden sm:inline text-white/70 hover:text-white transition-colors duration-200 text-xs">
+                    Direct
+                  </button>
+                )}
 
                 {/* Rotate Button (Landscape lock) */}
                 <button onClick={toggleLandscape} className="text-white hover:text-primary-400 transition-colors duration-200">
