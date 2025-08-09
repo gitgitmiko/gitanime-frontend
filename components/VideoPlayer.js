@@ -237,10 +237,12 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
           style={{ position: 'absolute', top: 0, left: 0 }}
           config={{
             file: {
+              forceVideo: true,
               attributes: {
                 crossOrigin: 'anonymous',
                 playsInline: true,
-                controlsList: 'nodownload'
+                controlsList: 'nodownload',
+                preload: 'metadata'
               }
             }
           }}
