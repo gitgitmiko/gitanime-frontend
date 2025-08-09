@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import ReactPlayer from 'react-player';
 import { FiPlay, FiPause, FiVolume2, FiVolumeX, FiMaximize, FiSettings, FiRotateCw } from 'react-icons/fi';
 
-export default function VideoPlayer({ videoUrl, originalVideoUrl, title, onOpenSettings, onBypassProxy }) {
+export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
   const [playing, setPlaying] = useState(false);
   const [volume, setVolume] = useState(0.8);
   const [muted, setMuted] = useState(false);
@@ -20,8 +20,6 @@ export default function VideoPlayer({ videoUrl, originalVideoUrl, title, onOpenS
   const playerRef = useRef(null);
   const hideControlsTimeoutRef = useRef(null);
   const lastSeekFractionRef = useRef(null);
-  const playedRef = useRef(0);
-  const pendingResumeFractionRef = useRef(null);
 
   useEffect(() => {
     if (videoUrl) {
@@ -71,17 +69,7 @@ export default function VideoPlayer({ videoUrl, originalVideoUrl, title, onOpenS
     } catch (_) {}
 
     // Heuristic: if after a short delay position snaps back to ~0, fallback to direct URL (proxy likely not supporting ranges)
-    const backendBase = (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000').replace(/\/$/, '');
-    const isProxied = typeof videoUrl === 'string' && videoUrl.startsWith(backendBase);
-    setTimeout(() => {
-      const current = playedRef.current;
-      if (isProxied && originalVideoUrl && typeof onBypassProxy === 'function') {
-        if (newTime > 0.05 && current < 0.02) {
-          pendingResumeFractionRef.current = newTime;
-          onBypassProxy();
-        }
-      }
-    }, 1200);
+    // Removed auto-bypass logic; always use proxy
   };
 
   const handleProgress = (state) => {
@@ -89,7 +77,6 @@ export default function VideoPlayer({ videoUrl, originalVideoUrl, title, onOpenS
       setPlayed(state.played);
     }
     setLoaded(state.loaded);
-    playedRef.current = state.played;
   };
 
   const handleDuration = (duration) => {
@@ -235,15 +222,7 @@ export default function VideoPlayer({ videoUrl, originalVideoUrl, title, onOpenS
           onProgress={handleProgress}
           onDuration={handleDuration}
           onError={handleError}
-          onReady={() => {
-            if (pendingResumeFractionRef.current != null && playerRef.current) {
-              try {
-                playerRef.current.seekTo(pendingResumeFractionRef.current, 'fraction');
-                setPlaying(true);
-              } catch (_) {}
-              pendingResumeFractionRef.current = null;
-            }
-          }}
+          onReady={() => {}}
           onSeek={(seconds) => {
             // Sync slider after programmatic seek
             if (duration > 0 && typeof seconds === 'number') {

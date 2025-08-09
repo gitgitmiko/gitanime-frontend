@@ -11,7 +11,6 @@ export default function EpisodePlayer() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedVideoUrl, setSelectedVideoUrl] = useState(null);
-  const [selectedOriginalUrl, setSelectedOriginalUrl] = useState(null);
   const [highlightOptions, setHighlightOptions] = useState(false);
   const optionsRef = useRef(null);
 
@@ -46,13 +45,11 @@ export default function EpisodePlayer() {
           if (defaultOption) {
             const proxyUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/api/video-proxy?url=${encodeURIComponent(defaultOption.videoUrl)}`;
             setSelectedVideoUrl(proxyUrl);
-            setSelectedOriginalUrl(defaultOption.videoUrl);
           }
         } else if (response.data.data.url) {
           // Fallback to default URL only if no player options available
           const proxyUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/api/video-proxy?url=${encodeURIComponent(response.data.data.url)}`;
           setSelectedVideoUrl(proxyUrl);
-          setSelectedOriginalUrl(response.data.data.url);
         }
       } else {
         // If API fails, try to construct video URL directly from the episode URL
@@ -60,18 +57,11 @@ export default function EpisodePlayer() {
         const directVideoUrl = constructDirectVideoUrl(url);
         if (directVideoUrl) {
           setSelectedVideoUrl(directVideoUrl);
-          setSelectedOriginalUrl(episodeUrl);
           setVideoData({
             episodeUrl: url,
             url: directVideoUrl,
             type: 'direct',
-            playerOptions: [
-              {
-                id: 'direct',
-                text: 'Video Langsung',
-                videoUrl: directVideoUrl
-              }
-            ]
+            playerOptions: []
           });
         } else {
           setError('Tidak dapat memuat data video untuk episode ini');
@@ -83,18 +73,11 @@ export default function EpisodePlayer() {
       const directVideoUrl = constructDirectVideoUrl(url);
       if (directVideoUrl) {
         setSelectedVideoUrl(directVideoUrl);
-        setSelectedOriginalUrl(url);
         setVideoData({
           episodeUrl: url,
           url: directVideoUrl,
           type: 'direct',
-          playerOptions: [
-            {
-              id: 'direct',
-              text: 'Video Langsung',
-              videoUrl: directVideoUrl
-            }
-          ]
+          playerOptions: []
         });
       } else {
         setError('Terjadi kesalahan saat memuat data video');
@@ -121,7 +104,6 @@ export default function EpisodePlayer() {
     // Convert video URL to use backend proxy
     const proxyUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/api/video-proxy?url=${encodeURIComponent(videoUrl)}`;
     setSelectedVideoUrl(proxyUrl);
-    setSelectedOriginalUrl(videoUrl);
   };
 
   const handleBack = () => {
@@ -193,17 +175,7 @@ export default function EpisodePlayer() {
           {/* Video Player */}
           {selectedVideoUrl && (
             <div className="mb-6">
-              <VideoPlayer 
-                videoUrl={selectedVideoUrl} 
-                originalVideoUrl={selectedOriginalUrl}
-                title={title} 
-                onOpenSettings={handleOpenSettings}
-                onBypassProxy={() => {
-                  if (selectedOriginalUrl) {
-                    setSelectedVideoUrl(selectedOriginalUrl);
-                  }
-                }}
-              />
+              <VideoPlayer videoUrl={selectedVideoUrl} title={title} onOpenSettings={handleOpenSettings} />
             </div>
           )}
 
