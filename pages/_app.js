@@ -23,6 +23,8 @@ function MyApp({ Component, pageProps }) {
         <meta httpEquiv="Content-Language" content="id-ID" />
         {/* Google Search Console verification (URL-prefix property) */}
         <meta name="google-site-verification" content="E9Fe_DOI__0wd8ydQGbeaHwf1PWss_bTf1wm3NX4PdY" />
+        {/* Bing Webmaster verification */}
+        <meta name="msvalidate.01" content="1C92DE6A32E765D5B1CC05AA92F23A9D" />
         {/* Twitter default */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="GitAnime - Platform Streaming Anime Terbaik" />
