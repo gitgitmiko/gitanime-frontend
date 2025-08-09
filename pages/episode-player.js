@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import VideoPlayer from '../components/VideoPlayer';
@@ -11,6 +11,8 @@ export default function EpisodePlayer() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedVideoUrl, setSelectedVideoUrl] = useState(null);
+  const [highlightOptions, setHighlightOptions] = useState(false);
+  const optionsRef = useRef(null);
 
   useEffect(() => {
     if (url) {
@@ -120,6 +122,14 @@ export default function EpisodePlayer() {
     router.back();
   };
 
+  const handleOpenSettings = () => {
+    if (optionsRef.current) {
+      optionsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setHighlightOptions(true);
+      setTimeout(() => setHighlightOptions(false), 1800);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-dark-900 flex items-center justify-center">
@@ -177,15 +187,15 @@ export default function EpisodePlayer() {
           {/* Video Player */}
           {selectedVideoUrl && (
             <div className="mb-6">
-              <VideoPlayer videoUrl={selectedVideoUrl} title={title} />
+              <VideoPlayer videoUrl={selectedVideoUrl} title={title} onOpenSettings={handleOpenSettings} />
             </div>
           )}
 
           {/* Player Options */}
           {videoData && videoData.playerOptions && videoData.playerOptions.length > 0 && (
-            <div className="card p-6 mb-6">
+            <div ref={optionsRef} className={`card p-4 sm:p-6 mb-6 transition-shadow ${highlightOptions ? 'ring-2 ring-primary-500' : ''}`}>
               <h2 className="text-white text-xl font-semibold mb-4">Pilih Kualitas Video</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
                 {videoData.playerOptions.map((option, index) => {
                   const proxyUrl = option.videoUrl ? 
                     `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/api/video-proxy?url=${encodeURIComponent(option.videoUrl)}` : 
@@ -196,7 +206,7 @@ export default function EpisodePlayer() {
                       key={option.id}
                       onClick={() => handleVideoSelect(option.videoUrl)}
                       disabled={!option.videoUrl}
-                      className={`p-3 rounded-lg text-sm font-medium transition-colors ${
+                      className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
                         !option.videoUrl 
                           ? 'bg-dark-600 text-dark-500 cursor-not-allowed'
                           : selectedVideoUrl === proxyUrl
@@ -206,10 +216,10 @@ export default function EpisodePlayer() {
                     >
                       {option.text}
                       {option.videoUrl && (
-                        <div className="text-xs text-green-400 mt-1">✓ Tersedia</div>
+                        <div className="text-[10px] sm:text-xs text-green-400 mt-1">✓ Tersedia</div>
                       )}
                       {!option.videoUrl && (
-                        <div className="text-xs text-red-400 mt-1">✗ Tidak tersedia</div>
+                        <div className="text-[10px] sm:text-xs text-red-400 mt-1">✗ Tidak tersedia</div>
                       )}
                     </button>
                   );
