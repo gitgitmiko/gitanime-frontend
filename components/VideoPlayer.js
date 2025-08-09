@@ -221,7 +221,10 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
       onTouchStart={showControlsTemporarily}
     >
       {/* Aspect ratio wrapper */}
-      <div className="relative pt-[56.25%]">
+      <div
+        className="relative"
+        style={{ paddingTop: isFullscreen ? 0 : '56.25%', height: isFullscreen ? '100%' : undefined }}
+      >
         {/* Back button overlay (mobile-friendly). Muncul saat fullscreen dan controls terlihat */}
         {isFullscreen && showControls && (
           <div className="absolute top-3 left-3 z-20">
@@ -270,7 +273,13 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
                 crossOrigin: 'anonymous',
                 playsInline: true,
                 controlsList: 'nodownload',
-                preload: 'metadata'
+                preload: 'metadata',
+                style: {
+                  objectFit: isFullscreen ? 'contain' : 'cover',
+                  objectPosition: 'center center',
+                  width: '100%',
+                  height: '100%'
+                }
               }
             },
             hlsOptions: {
