@@ -14,6 +14,23 @@ const nextConfig = {
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY || 'default-key',
   },
+  async redirects() {
+    return [
+      // Redirect lama ke rute SEO baru
+      {
+        source: '/anime-detail',
+        has: [{ type: 'query', key: 'url' }],
+        destination: '/anime/:slug',
+        permanent: true,
+      },
+      {
+        source: '/episode-player',
+        has: [{ type: 'query', key: 'url' }],
+        destination: '/episode/:id',
+        permanent: true,
+      },
+    ];
+  },
 }
 
 module.exports = nextConfig

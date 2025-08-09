@@ -2,10 +2,29 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { FiPlay, FiEye, FiStar, FiTag, FiClock } from 'react-icons/fi';
 
+function extractAnimeSlug(link) {
+  try {
+    const url = new URL(link);
+    // path like /anime/slug/
+    const segments = url.pathname.split('/').filter(Boolean);
+    const last = segments[segments.length - 1];
+    const second = segments[segments.length - 2];
+    if (second === 'anime') return last; // typical pattern
+    return last;
+  } catch (_) {
+    // fallback: try remove trailing slash
+    if (typeof link === 'string') {
+      const parts = link.split('/').filter(Boolean);
+      return parts[parts.length - 1] || '';
+    }
+    return '';
+  }
+}
+
 export default function AnimeListCard({ anime, viewMode = 'grid' }) {
   if (viewMode === 'list') {
     return (
-      <Link href={`/anime-detail?url=${encodeURIComponent(anime.link)}`}>
+      <Link href={`/anime/${encodeURIComponent(extractAnimeSlug(anime.link))}`}>
         <div className="anime-card flex items-center space-x-4 p-4 hover:bg-dark-700 transition-colors duration-200 rounded-lg">
           {/* Image */}
           <div className="flex-shrink-0">
@@ -109,7 +128,7 @@ export default function AnimeListCard({ anime, viewMode = 'grid' }) {
 
   // Grid mode (default)
   return (
-    <Link href={`/anime-detail?url=${encodeURIComponent(anime.link)}`}>
+    <Link href={`/anime/${encodeURIComponent(extractAnimeSlug(anime.link))}`}>
       <div className="anime-card group">
         {/* Image Container */}
         <div className="relative overflow-hidden rounded-t-lg">

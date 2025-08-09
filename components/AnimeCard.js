@@ -102,7 +102,7 @@ export default function AnimeCard({ anime, viewMode = 'grid' }) {
 
   // Grid mode (default)
   return (
-    <Link href={`/episode-player?url=${encodeURIComponent(episodeUrl)}&title=${encodeURIComponent(anime.title)}`}>
+    <Link href={anime.id ? `/episode/${encodeURIComponent(anime.id)}?title=${encodeURIComponent(anime.title)}` : `/episode-player?url=${encodeURIComponent(episodeUrl)}&title=${encodeURIComponent(anime.title)}`}>
       <div className="anime-card group rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300">
         {/* Image Container */}
         <div className="relative overflow-hidden">
