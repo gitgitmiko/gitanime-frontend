@@ -68,24 +68,20 @@ export default function AnimeCard({ anime, viewMode = 'grid' }) {
               <p className="text-xs sm:text-sm text-dark-300 mb-2 line-clamp-1">{anime.altTitle}</p>
             )}
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-dark-400">
-              <span className="flex items-center gap-1">
+              <span className="inline-flex items-center gap-1 whitespace-nowrap">
                 <FiEye className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span>Episode {anime.episodeNumber || 'N/A'}</span>
               </span>
-              {(anime.postedBy || anime.releasedOn) && (
-                <span className="text-dark-500">•</span>
-              )}
               {anime.postedBy && (
-                <span className="flex items-center gap-1 text-primary-400">
+                <span className="inline-flex items-center gap-1 text-primary-400 whitespace-nowrap">
+                  <span className="text-dark-500">•</span>
                   <FiUser className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span>{anime.postedBy}</span>
                 </span>
               )}
-              {anime.postedBy && anime.releasedOn && (
-                <span className="text-dark-500">•</span>
-              )}
               {anime.releasedOn && (
-                <span className="flex items-center gap-1">
+                <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                  <span className="text-dark-500">•</span>
                   <FiClock className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span>{anime.releasedOn}</span>
                 </span>
@@ -184,28 +180,25 @@ export default function AnimeCard({ anime, viewMode = 'grid' }) {
             </p>
           )}
 
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-1 sm:space-y-0 text-xs sm:text-sm text-dark-400">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-dark-400">
+            <span className="inline-flex items-center gap-1 whitespace-nowrap">
               <FiEye className="w-3 h-3 sm:w-4 sm:h-4" />
               <span>Episode {anime.episodeNumber || 'N/A'}</span>
-            </div>
-            <div className="flex items-center flex-wrap gap-x-3 gap-y-1">
-              {anime.postedBy && (
-                <span className="flex items-center gap-1 text-primary-400">
-                  <FiUser className="w-3 h-3 sm:w-4 sm:h-4" />
-                  <span>{anime.postedBy}</span>
-                </span>
-              )}
-              {anime.postedBy && anime.releasedOn && (
+            </span>
+            {anime.postedBy && (
+              <span className="inline-flex items-center gap-1 text-primary-400 whitespace-nowrap">
                 <span className="text-dark-500">•</span>
-              )}
-              {anime.releasedOn && (
-                <span className="flex items-center gap-1">
-                  <FiClock className="w-3 h-3 sm:w-4 sm:h-4" />
-                  <span>{anime.releasedOn}</span>
-                </span>
-              )}
-            </div>
+                <FiUser className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span>{anime.postedBy}</span>
+              </span>
+            )}
+            {anime.releasedOn && (
+              <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                <span className="text-dark-500">•</span>
+                <FiClock className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span>{anime.releasedOn}</span>
+              </span>
+            )}
           </div>
         </div>
       </div>
