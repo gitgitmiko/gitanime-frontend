@@ -1,8 +1,8 @@
-import { axiosGet } from '../utils/api';
+import { axiosGet } from '../../utils/api';
 
 const BASE_URL = 'https://gitanime-web.vercel.app';
 
-export async function getServerSideProps({ res }) {
+export default async function handler(req, res) {
   let animePages = 1;
   let episodePages = 1;
   try {
@@ -15,9 +15,9 @@ export async function getServerSideProps({ res }) {
   } catch (_) {}
 
   const parts = [];
-  parts.push(`${BASE_URL}/api/sitemap-core.xml`);
-  for (let i = 1; i <= animePages; i++) parts.push(`${BASE_URL}/api/sitemap-anime-${i}.xml?page=${i}`);
-  for (let i = 1; i <= episodePages; i++) parts.push(`${BASE_URL}/api/sitemap-episodes-${i}.xml?page=${i}`);
+  parts.push(`${BASE_URL}/sitemap-core.xml`);
+  for (let i = 1; i <= animePages; i++) parts.push(`${BASE_URL}/sitemap-anime-${i}.xml`);
+  for (let i = 1; i <= episodePages; i++) parts.push(`${BASE_URL}/sitemap-episodes-${i}.xml`);
 
   const now = new Date().toISOString();
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
@@ -26,13 +26,7 @@ export async function getServerSideProps({ res }) {
 
   res.setHeader('Content-Type', 'application/xml');
   res.setHeader('Cache-Control', 'public, s-maxage=3600, max-age=3600');
-  res.statusCode = 200;
-  res.write(xml);
-  res.end();
-  return { props: {} };
+  res.status(200).send(xml);
 }
-
-export default function SiteMapIndex() { return null; }
-
 
 
