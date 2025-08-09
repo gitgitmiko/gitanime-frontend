@@ -1,78 +1,12 @@
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
 import Head from 'next/head';
-import { axiosGet } from '../../utils/api';
-import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/router';
 import { FiPlay, FiCalendar, FiClock, FiTag, FiStar } from 'react-icons/fi';
+import { axiosGet } from '../../utils/api';
 
-export default function AnimeSlugDetail() {
+export default function AnimeSlugDetail({ animeDetail, canonical, error }) {
   const router = useRouter();
-  const { slug } = router.query;
-  const [animeDetail, setAnimeDetail] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  const buildAnimeUrl = (s) => `https://v1.samehadaku.how/anime/${s}/`;
-
-  useEffect(() => {
-    if (slug) {
-      fetchAnimeDetail(buildAnimeUrl(slug));
-    }
-  }, [slug]);
-
-  const fetchAnimeDetail = async (targetUrl) => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const response = await axiosGet(`/api/anime-detail?url=${encodeURIComponent(targetUrl)}`);
-
-      if (response.data && response.data.success) {
-        const detailData = response.data.data;
-
-        // Coba enrich imageUrl dari anime-list
-        try {
-          const animeListResponse = await axiosGet('/api/anime-list', {
-            params: { search: detailData.title, limit: 1 }
-          });
-
-          if (animeListResponse.data?.success && animeListResponse.data.data?.anime?.length > 0) {
-            const match = animeListResponse.data.data.anime.find((a) =>
-              a.title && detailData.title && (
-                a.title.toLowerCase().includes(detailData.title.toLowerCase()) ||
-                detailData.title.toLowerCase().includes(a.title.toLowerCase())
-              )
-            );
-            if (match?.imageUrl) detailData.imageUrl = match.imageUrl;
-          }
-        } catch (_) {}
-
-        setAnimeDetail(detailData);
-      } else {
-        setError(response.data?.message || 'Gagal memuat detail anime');
-      }
-    } catch (err) {
-      setError(err?.message || 'Gagal memuat detail anime');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleBack = () => router.back();
-
-  const canonical = slug ? `https://gitanime-web.vercel.app/anime/${slug}` : undefined;
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-dark-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto"></div>
-          <p className="text-white mt-4">Memuat detail anime...</p>
-        </div>
-      </div>
-    );
-  }
 
   if (error) {
     return (
@@ -91,11 +25,66 @@ export default function AnimeSlugDetail() {
 
   if (!animeDetail) return null;
 
+  // JSON-LD: TVSeries
+  const tvSeriesJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'TVSeries',
+    name: animeDetail.title,
+    image: animeDetail.imageUrl || animeDetail.episodeScreenshot || animeDetail.image || undefined,
+    description: animeDetail.synopsis || undefined,
+    numberOfEpisodes: animeDetail.totalEpisodes || undefined,
+    genre: Array.isArray(animeDetail.genres) ? animeDetail.genres : undefined,
+  };
+
+  // JSON-LD: Breadcrumb
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: 'https://gitanime-web.vercel.app/',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Anime',
+        item: 'https://gitanime-web.vercel.app/anime',
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: animeDetail.title,
+        item: canonical,
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-dark-900">
       <Head>
         <title>{animeDetail.title ? `${animeDetail.title} - GitAnime` : 'Detail Anime - GitAnime'}</title>
         {canonical && <link rel="canonical" href={canonical} />}
+        {/* Open Graph */}
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="GitAnime" />
+        <meta property="og:title" content={animeDetail.title || 'Detail Anime'} />
+        {animeDetail.synopsis && <meta property="og:description" content={animeDetail.synopsis.substring(0, 150)} />}
+        {(animeDetail.imageUrl || animeDetail.episodeScreenshot || animeDetail.image) && (
+          <meta property="og:image" content={animeDetail.imageUrl || animeDetail.episodeScreenshot || animeDetail.image} />
+        )}
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={animeDetail.title || 'Detail Anime'} />
+        {animeDetail.synopsis && <meta name="twitter:description" content={animeDetail.synopsis.substring(0, 150)} />}
+        {(animeDetail.imageUrl || animeDetail.episodeScreenshot || animeDetail.image) && (
+          <meta name="twitter:image" content={animeDetail.imageUrl || animeDetail.episodeScreenshot || animeDetail.image} />
+        )}
+        {/* JSON-LD */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(tvSeriesJsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       </Head>
 
       {/* Header */}
@@ -233,6 +222,34 @@ export default function AnimeSlugDetail() {
       </div>
     </div>
   );
+}
+
+export async function getServerSideProps({ params }) {
+  try {
+    const slug = params?.slug;
+    if (!slug) return { notFound: true };
+    const targetUrl = `https://v1.samehadaku.how/anime/${slug}/`;
+    const res = await axiosGet(`/api/anime-detail`, { params: { url: targetUrl } });
+    if (!res.data?.success) {
+      return { props: { error: res.data?.message || 'Gagal memuat detail anime' } };
+    }
+    const detailData = res.data.data || {};
+    // Enrich imageUrl from anime-list
+    try {
+      const listRes = await axiosGet('/api/anime-list', { params: { search: detailData.title, limit: 1 } });
+      const list = listRes.data?.data?.anime || [];
+      const match = list.find((a) => a.title && detailData.title && (
+        a.title.toLowerCase().includes(detailData.title.toLowerCase()) ||
+        detailData.title.toLowerCase().includes(a.title.toLowerCase())
+      ));
+      if (match?.imageUrl) detailData.imageUrl = match.imageUrl;
+    } catch (_) {}
+
+    const canonical = `https://gitanime-web.vercel.app/anime/${slug}`;
+    return { props: { animeDetail: detailData, canonical } };
+  } catch (e) {
+    return { props: { error: e?.message || 'Gagal memuat detail anime' } };
+  }
 }
 
 

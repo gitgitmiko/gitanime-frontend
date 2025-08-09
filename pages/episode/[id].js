@@ -4,21 +4,15 @@ import Head from 'next/head';
 import { axiosGet } from '../../utils/api';
 import VideoPlayer from '../../components/VideoPlayer';
 
-export default function EpisodeById() {
+export default function EpisodeById({ initialData, initialSelectedUrl, canonical }) {
   const router = useRouter();
-  const { id, title } = router.query;
-  const [videoData, setVideoData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { title } = router.query;
+  const [videoData, setVideoData] = useState(initialData || null);
+  const [loading, setLoading] = useState(!initialData);
   const [error, setError] = useState(null);
-  const [selectedVideoUrl, setSelectedVideoUrl] = useState(null);
+  const [selectedVideoUrl, setSelectedVideoUrl] = useState(initialSelectedUrl || null);
   const [highlightOptions, setHighlightOptions] = useState(false);
   const optionsRef = useRef(null);
-
-  const buildEpisodeUrl = (episodeId) => `https://v1.samehadaku.how/${episodeId}/`;
-
-  useEffect(() => {
-    if (id) fetchVideoData(buildEpisodeUrl(id));
-  }, [id]);
 
   const buildProxiedUrl = (originalUrl) => {
     if (!originalUrl || typeof originalUrl !== 'string') return null;
@@ -63,8 +57,6 @@ export default function EpisodeById() {
     }
   };
 
-  const canonical = id ? `https://gitanime-web.vercel.app/episode/${id}` : undefined;
-
   if (loading) {
     return (
       <div className="min-h-screen bg-dark-900 flex items-center justify-center">
@@ -94,6 +86,28 @@ export default function EpisodeById() {
       <Head>
         <title>{title ? `${title} - GitAnime` : 'Episode Player - GitAnime'}</title>
         {canonical && <link rel="canonical" href={canonical} />}
+        {/* Open Graph */}
+        <meta property="og:type" content="video.other" />
+        <meta property="og:site_name" content="GitAnime" />
+        <meta property="og:title" content={title || 'Episode Player'} />
+        {/* Twitter */}
+        <meta name="twitter:card" content="player" />
+        <meta name="twitter:title" content={title || 'Episode Player'} />
+        {/* JSON-LD VideoObject minimal */}
+        {title && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                '@context': 'https://schema.org',
+                '@type': 'VideoObject',
+                name: title,
+                description: `Tonton ${title} di GitAnime`,
+                uploadDate: new Date().toISOString(),
+              }),
+            }}
+          />
+        )}
       </Head>
 
       <div className="min-h-screen bg-dark-900">
@@ -149,6 +163,37 @@ export default function EpisodeById() {
       </div>
     </>
   );
+}
+
+export async function getServerSideProps({ params, query }) {
+  try {
+    const id = params?.id;
+    if (!id) return { notFound: true };
+    const episodeUrl = `https://v1.samehadaku.how/${id}/`;
+    const res = await axiosGet('/api/episode-video', { params: { url: episodeUrl } });
+    if (!res.data?.success) {
+      return { props: { initialData: null, initialSelectedUrl: null, canonical: `https://gitanime-web.vercel.app/episode/${id}` } };
+    }
+    const data = res.data.data || {};
+    const options = data.playerOptions || [];
+    const isMatch720 = (opt) => /(premium|\b)p?\s*720/i.test(opt.text || '');
+    const isMatch1080 = (opt) => /(premium|\b)p?\s*1080/i.test(opt.text || '');
+    let def = options.find((o) => o.videoUrl && (o.id === 'player-option-3' || isMatch720(o)));
+    if (!def) def = options.find((o) => o.videoUrl && (o.id === 'player-option-4' || isMatch1080(o)));
+    if (!def) def = options.find((o) => o.videoUrl);
+    const backend = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+    const buildProxiedUrl = (originalUrl) => {
+      if (!originalUrl || typeof originalUrl !== 'string') return null;
+      const isHls = originalUrl.toLowerCase().includes('.m3u8');
+      const path = isHls ? '/api/hls-proxy' : '/api/video-proxy';
+      return `${backend}${path}?url=${encodeURIComponent(originalUrl)}`;
+    };
+    const selected = def ? buildProxiedUrl(def.videoUrl) : data.url ? buildProxiedUrl(data.url) : null;
+    const canonical = `https://gitanime-web.vercel.app/episode/${id}`;
+    return { props: { initialData: data, initialSelectedUrl: selected, canonical } };
+  } catch (e) {
+    return { props: { initialData: null, initialSelectedUrl: null, canonical: null } };
+  }
 }
 
 

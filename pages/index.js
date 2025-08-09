@@ -111,6 +111,13 @@ export default function Home() {
 
   return (
     <div className="space-y-8">
+      {/* Canonical + noindex untuk hasil pencarian */}
+      <Head>
+        <link rel="canonical" href={`https://gitanime-web.vercel.app/`} />
+        {router.asPath.includes('?search=') && (
+          <meta name="robots" content="noindex,follow" />
+        )}
+      </Head>
       {/* Hero Section */}
       <div className="text-center py-12">
         <h1 className="text-4xl md:text-6xl font-bold text-gradient mb-4">
