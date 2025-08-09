@@ -241,8 +241,8 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
                 max={1}
                 step="any"
                 value={played}
-                onMouseDown={handleSeekMouseDown}
-                onMouseUp={handleSeekMouseUp}
+                onPointerDown={handleSeekMouseDown}
+                onPointerUp={handleSeekMouseUp}
                 onChange={handleSeek}
                 className="w-full h-1.5 bg-dark-600 rounded-lg appearance-none cursor-pointer slider"
               />
