@@ -244,6 +244,15 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
                 controlsList: 'nodownload',
                 preload: 'metadata'
               }
+            },
+            hlsOptions: {
+              lowLatencyMode: true,
+              backBufferLength: 30,
+              maxLiveSyncPlaybackRate: 1.2,
+              liveSyncDurationCount: 2,
+              enableWorker: true,
+              fragLoadingTimeOut: 20000,
+              manifestLoadingTimeOut: 20000
             }
           }}
           progressInterval={250}

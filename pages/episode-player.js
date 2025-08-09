@@ -43,12 +43,12 @@ export default function EpisodePlayer() {
           }
           
           if (defaultOption) {
-            const proxyUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/api/video-proxy?url=${encodeURIComponent(defaultOption.videoUrl)}`;
+            const proxyUrl = buildProxiedUrl(defaultOption.videoUrl);
             setSelectedVideoUrl(proxyUrl);
           }
         } else if (response.data.data.url) {
           // Fallback to default URL only if no player options available
-          const proxyUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/api/video-proxy?url=${encodeURIComponent(response.data.data.url)}`;
+          const proxyUrl = buildProxiedUrl(response.data.data.url);
           setSelectedVideoUrl(proxyUrl);
         }
       } else {
@@ -92,7 +92,7 @@ export default function EpisodePlayer() {
     
     try {
       // Construct direct video URL using backend proxy
-      const directUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/api/video-proxy?url=${encodeURIComponent(episodeUrl)}`;
+      const directUrl = buildProxiedUrl(episodeUrl);
       return directUrl;
     } catch (error) {
       console.error('Error constructing direct video URL:', error);
@@ -100,9 +100,17 @@ export default function EpisodePlayer() {
     }
   };
 
+  const buildProxiedUrl = (originalUrl) => {
+    if (!originalUrl || typeof originalUrl !== 'string') return null;
+    const backend = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+    const isHls = originalUrl.toLowerCase().includes('.m3u8');
+    const path = isHls ? '/api/hls-proxy' : '/api/video-proxy';
+    return `${backend}${path}?url=${encodeURIComponent(originalUrl)}`;
+  };
+
   const handleVideoSelect = (videoUrl) => {
     // Convert video URL to use backend proxy
-    const proxyUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/api/video-proxy?url=${encodeURIComponent(videoUrl)}`;
+    const proxyUrl = buildProxiedUrl(videoUrl);
     setSelectedVideoUrl(proxyUrl);
   };
 
