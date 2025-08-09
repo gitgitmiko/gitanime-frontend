@@ -25,11 +25,15 @@ export default function AnimeList() {
   const router = useRouter();
 
   useEffect(() => {
-    const { search, status, sortBy, sortOrder } = router.query;
+    const { search, status, sortBy, sortOrder, page } = router.query;
     if (search) setSearchQuery(search);
     if (status) setFilters(prev => ({ ...prev, status }));
     if (sortBy) setFilters(prev => ({ ...prev, sortBy }));
     if (sortOrder) setFilters(prev => ({ ...prev, sortOrder }));
+    if (page) {
+      const num = parseInt(page, 10);
+      if (!Number.isNaN(num) && num > 0) setCurrentPage(num);
+    }
   }, [router.query]);
 
   const fetchAnime = useCallback(async () => {
@@ -69,10 +73,12 @@ export default function AnimeList() {
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push({
-        pathname: '/anime',
-        query: { search: searchQuery.trim() }
+      const query = { ...router.query, search: searchQuery.trim(), page: 1 };
+      // bersihkan kunci kosong
+      Object.keys(query).forEach((k) => {
+        if (query[k] === '' || query[k] === undefined || query[k] === null) delete query[k];
       });
+      router.push({ pathname: '/anime', query });
       setCurrentPage(1);
     }
   };
@@ -81,7 +87,7 @@ export default function AnimeList() {
     setFilters(prev => ({ ...prev, [key]: value }));
     setCurrentPage(1);
     
-    const query = { ...router.query, [key]: value };
+    const query = { ...router.query, [key]: value, page: 1 };
     if (value === '') delete query[key];
     router.push({ pathname: '/anime', query });
   };
@@ -100,6 +106,9 @@ export default function AnimeList() {
   const handlePageChange = (page) => {
     console.log('Changing to page:', page);
     setCurrentPage(page);
+    const query = { ...router.query };
+    if (page > 1) query.page = page; else delete query.page;
+    router.push({ pathname: '/anime', query });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
