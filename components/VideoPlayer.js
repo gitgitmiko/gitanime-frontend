@@ -309,12 +309,7 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
                   <FiSettings className="w-5 h-5" />
                 </button>
 
-                {/* Bypass Proxy if needed */}
-                {originalVideoUrl && onBypassProxy && (
-                  <button onClick={onBypassProxy} className="hidden sm:inline text-white/70 hover:text-white transition-colors duration-200 text-xs">
-                    Direct
-                  </button>
-                )}
+                {/* Bypass Proxy removed */}
 
                 {/* Rotate Button (Landscape lock) */}
                 <button onClick={toggleLandscape} className="text-white hover:text-primary-400 transition-colors duration-200">
