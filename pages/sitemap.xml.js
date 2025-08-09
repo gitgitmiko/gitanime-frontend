@@ -25,6 +25,7 @@ export async function getServerSideProps({ res }) {
     `\n</sitemapindex>`;
 
   res.setHeader('Content-Type', 'application/xml');
+  res.setHeader('Cache-Control', 'public, s-maxage=3600, max-age=3600');
   res.write(xml);
   res.end();
   return { props: {} };
