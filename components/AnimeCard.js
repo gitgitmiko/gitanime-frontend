@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { FiPlay, FiEye, FiClock } from 'react-icons/fi';
+import { FiPlay, FiEye, FiClock, FiUser } from 'react-icons/fi';
 
 export default function AnimeCard({ anime, viewMode = 'grid' }) {
   // Construct the correct episode URL
@@ -67,18 +67,25 @@ export default function AnimeCard({ anime, viewMode = 'grid' }) {
             {anime.altTitle && (
               <p className="text-xs sm:text-sm text-dark-300 mb-2 line-clamp-1">{anime.altTitle}</p>
             )}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-1 sm:space-y-0 text-xs sm:text-sm text-dark-400">
-              <span className="flex items-center space-x-1">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-dark-400">
+              <span className="flex items-center gap-1">
                 <FiEye className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span>Episode {anime.episodeNumber || 'N/A'}</span>
               </span>
+              {(anime.postedBy || anime.releasedOn) && (
+                <span className="text-dark-500">•</span>
+              )}
               {anime.postedBy && (
-                <span className="text-primary-400">
-                  by {anime.postedBy}
+                <span className="flex items-center gap-1 text-primary-400">
+                  <FiUser className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span>{anime.postedBy}</span>
                 </span>
               )}
+              {anime.postedBy && anime.releasedOn && (
+                <span className="text-dark-500">•</span>
+              )}
               {anime.releasedOn && (
-                <span className="flex items-center space-x-1">
+                <span className="flex items-center gap-1">
                   <FiClock className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span>{anime.releasedOn}</span>
                 </span>
@@ -166,7 +173,7 @@ export default function AnimeCard({ anime, viewMode = 'grid' }) {
         </div>
 
         {/* Content */}
-        <div className="p-3 sm:p-4">
+          <div className="p-3 sm:p-4">
           <h3 className="text-sm sm:text-lg font-semibold text-white mb-2 line-clamp-2 group-hover:text-primary-400 transition-colors duration-200">
             {anime.title}
           </h3>
@@ -178,21 +185,25 @@ export default function AnimeCard({ anime, viewMode = 'grid' }) {
           )}
 
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-1 sm:space-y-0 text-xs sm:text-sm text-dark-400">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2">
               <FiEye className="w-3 h-3 sm:w-4 sm:h-4" />
               <span>Episode {anime.episodeNumber || 'N/A'}</span>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center flex-wrap gap-x-3 gap-y-1">
               {anime.postedBy && (
-                <span className="text-primary-400 text-xs">
-                  by {anime.postedBy}
+                <span className="flex items-center gap-1 text-primary-400">
+                  <FiUser className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span>{anime.postedBy}</span>
                 </span>
               )}
+              {anime.postedBy && anime.releasedOn && (
+                <span className="text-dark-500">•</span>
+              )}
               {anime.releasedOn && (
-                <>
+                <span className="flex items-center gap-1">
                   <FiClock className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span>{anime.releasedOn}</span>
-                </>
+                </span>
               )}
             </div>
           </div>
