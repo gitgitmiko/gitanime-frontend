@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { axiosGet } from '../utils/api';
 import AnimeListCard from '../components/AnimeListCard';
@@ -149,6 +150,19 @@ export default function AnimeList() {
 
   return (
     <div className="space-y-8">
+      <Head>
+        <link rel="canonical" href={`https://gitanime-web.vercel.app/anime${currentPage > 1 ? `?page=${currentPage}` : ''}`} />
+        {router.asPath.includes('?search=') && (
+          <meta name="robots" content="noindex,follow" />
+        )}
+        {/* rel prev/next for pagination */}
+        {currentPage > 1 && (
+          <link rel="prev" href={`https://gitanime-web.vercel.app/anime${currentPage - 1 > 1 ? `?page=${currentPage - 1}` : ''}`} />
+        )}
+        {currentPage < totalPages && (
+          <link rel="next" href={`https://gitanime-web.vercel.app/anime?page=${currentPage + 1}`} />
+        )}
+      </Head>
       {/* Header */}
       <div className="text-center">
         <h1 className="text-4xl font-bold text-gradient mb-4">

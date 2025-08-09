@@ -9,7 +9,8 @@ const nextConfig = {
       'via.placeholder.com',
       'blogger.googleusercontent.com'
     ],
-    unoptimized: true
+    // Aktifkan optimasi Next Image untuk bantu LCP/SEO
+    // unoptimized: true
   },
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY || 'default-key',

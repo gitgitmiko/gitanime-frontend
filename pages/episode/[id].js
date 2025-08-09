@@ -90,10 +90,11 @@ export default function EpisodeById({ initialData, initialSelectedUrl, canonical
         <meta property="og:type" content="video.other" />
         <meta property="og:site_name" content="GitAnime" />
         <meta property="og:title" content={title || 'Episode Player'} />
+        {canonical && <meta property="og:url" content={canonical} />}
         {/* Twitter */}
         <meta name="twitter:card" content="player" />
         <meta name="twitter:title" content={title || 'Episode Player'} />
-        {/* JSON-LD VideoObject minimal */}
+        {/* JSON-LD VideoObject enrinched + Breadcrumb */}
         {title && (
           <script
             type="application/ld+json"
@@ -103,8 +104,35 @@ export default function EpisodeById({ initialData, initialSelectedUrl, canonical
                 '@type': 'VideoObject',
                 name: title,
                 description: `Tonton ${title} di GitAnime`,
-                uploadDate: new Date().toISOString(),
+                uploadDate: (videoData?.createdAt || new Date()).toString(),
+                thumbnailUrl: videoData?.thumbnailUrl || undefined,
+                embedUrl: canonical,
+                contentUrl: selectedVideoUrl || undefined,
+                publisher: {
+                  '@type': 'Organization',
+                  name: 'GitAnime',
+                  logo: {
+                    '@type': 'ImageObject',
+                    url: 'https://gitanime-web.vercel.app/favicon.svg'
+                  }
+                }
               }),
+            }}
+          />
+        )}
+        {canonical && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                '@context': 'https://schema.org',
+                '@type': 'BreadcrumbList',
+                itemListElement: [
+                  { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://gitanime-web.vercel.app/' },
+                  { '@type': 'ListItem', position: 2, name: 'Episode', item: 'https://gitanime-web.vercel.app/episode' },
+                  { '@type': 'ListItem', position: 3, name: title || 'Episode', item: canonical },
+                ]
+              })
             }}
           />
         )}
