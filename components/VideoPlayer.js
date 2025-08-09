@@ -240,7 +240,10 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
       onClick={showControlsTemporarily}
     >
       {/* Aspect ratio wrapper */}
-      <div className="relative pt-[56.25%]">
+      <div
+        className="relative"
+        style={{ paddingTop: isFullscreen ? 0 : '56.25%', height: isFullscreen ? '100%' : undefined }}
+      >
         {/* Back button overlay (mobile-friendly). Muncul saat fullscreen dan controls terlihat */}
         {isFullscreen && showControls && (
           <div className="absolute top-3 left-3 z-30">
