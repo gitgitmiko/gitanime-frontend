@@ -137,6 +137,20 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
     };
   }, []);
 
+  // Saat fullscreen, dengarkan pointer di dokumen agar tap dimana saja memunculkan kontrol
+  useEffect(() => {
+    if (!isFullscreen) return;
+    const handler = () => showControlsTemporarily();
+    document.addEventListener('pointerdown', handler, { passive: true });
+    document.addEventListener('pointermove', handler, { passive: true });
+    document.addEventListener('click', handler, { passive: true });
+    return () => {
+      document.removeEventListener('pointerdown', handler);
+      document.removeEventListener('pointermove', handler);
+      document.removeEventListener('click', handler);
+    };
+  }, [isFullscreen, showControlsTemporarily]);
+
   const enterFullscreen = async () => {
     const el = containerRef.current;
     if (!el) return;
@@ -221,6 +235,9 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => setShowControls(false)}
       onTouchStart={showControlsTemporarily}
+      onPointerDown={showControlsTemporarily}
+      onPointerMove={showControlsTemporarily}
+      onClick={showControlsTemporarily}
     >
       {/* Aspect ratio wrapper */}
       <div className="relative pt-[56.25%]">
