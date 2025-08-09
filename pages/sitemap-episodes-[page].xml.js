@@ -29,8 +29,5 @@ export async function getServerSideProps({ res, params, query }) {
 
 export default function SiteMapEpisodesPage() { return null; }
 
-export const config = {
-  runtime: 'edge',
-};
 
 

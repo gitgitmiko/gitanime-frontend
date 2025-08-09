@@ -41,8 +41,5 @@ export async function getServerSideProps({ res, params, query }) {
 
 export default function SiteMapAnimePage() { return null; }
 
-export const config = {
-  runtime: 'edge',
-};
 
 

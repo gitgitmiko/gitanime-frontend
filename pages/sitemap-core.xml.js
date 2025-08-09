@@ -26,8 +26,5 @@ export async function getServerSideProps({ res }) {
 
 export default function SiteMapCore() { return null; }
 
-export const config = {
-  runtime: 'edge',
-};
 
 
