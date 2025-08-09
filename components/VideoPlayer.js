@@ -182,9 +182,6 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
     }
   };
 
-  const controlsBottomOffset = isFullscreen ? 'calc(env(safe-area-inset-bottom, 0px) + 16px)' : '0px';
-  const titleTopOffset = isFullscreen ? 'calc(env(safe-area-inset-top, 0px) + 12px)' : undefined;
-
   if (!videoUrl) {
     return (
       <div className="video-player flex items-center justify-center bg-dark-800 rounded-lg">
@@ -224,10 +221,7 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
       onTouchStart={showControlsTemporarily}
     >
       {/* Aspect ratio wrapper */}
-      <div
-        className="relative"
-        style={{ paddingTop: isFullscreen ? 0 : '56.25%', height: isFullscreen ? '100%' : undefined }}
-      >
+      <div className="relative pt-[56.25%]">
         {/* Back button overlay (mobile-friendly). Muncul saat fullscreen dan controls terlihat */}
         {isFullscreen && showControls && (
           <div className="absolute top-3 left-3 z-20">
@@ -276,13 +270,7 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
                 crossOrigin: 'anonymous',
                 playsInline: true,
                 controlsList: 'nodownload',
-                preload: 'metadata',
-                style: {
-                  objectFit: isFullscreen ? 'contain' : 'cover',
-                  objectPosition: 'center center',
-                  width: '100%',
-                  height: '100%'
-                }
+                preload: 'metadata'
               }
             },
             hlsOptions: {
@@ -300,10 +288,7 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
 
         {/* Custom Controls */}
         {showControls && (
-          <div
-            className="absolute left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3 sm:p-4"
-            style={{ bottom: controlsBottomOffset }}
-          >
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 sm:p-4">
             {/* Progress Bar */}
             <div className="mb-3 sm:mb-4 select-none">
               <input
@@ -405,10 +390,7 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
         )}
 
         {/* Title Overlay */}
-        <div
-          className="absolute left-3 right-3 sm:left-4 sm:right-4"
-          style={{ top: titleTopOffset || 12 }}
-        >
+        <div className="absolute top-3 left-3 right-3 sm:top-4 sm:left-4 sm:right-4">
           <h3 className="text-white text-sm sm:text-base font-medium text-shadow-lg">
             {title}
           </h3>
