@@ -33,11 +33,16 @@ export async function getServerSideProps({ res, params, query }) {
 
   res.setHeader('Content-Type', 'application/xml');
   res.setHeader('Cache-Control', 'public, s-maxage=3600, max-age=3600');
+  res.statusCode = 200;
   res.write(xml);
   res.end();
   return { props: {} };
 }
 
 export default function SiteMapAnimePage() { return null; }
+
+export const config = {
+  runtime: 'edge',
+};
 
 
