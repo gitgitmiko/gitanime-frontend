@@ -33,15 +33,22 @@ export default function EpisodePlayer() {
       if (response.data.success) {
         setVideoData(response.data.data);
         
-        // Directly try to find player-option-4 first, then fallback to first available
+        // Prioritaskan Premium 720p sebagai default, lalu fallback 1080p, lalu opsi pertama yang tersedia
         if (response.data.data.playerOptions && response.data.data.playerOptions.length > 0) {
-          let defaultOption = response.data.data.playerOptions.find(option => option.id === 'player-option-4' && option.videoUrl);
-          
-          if (!defaultOption) {
-            // If player-option-4 not found or not available, use first available
-            defaultOption = response.data.data.playerOptions.find(option => option.videoUrl);
-          }
-          
+          const options = response.data.data.playerOptions || [];
+          const isMatch720 = (opt) => {
+            const t = (opt.text || '').toLowerCase();
+            return /720/.test(t) && (/premium/.test(t) || /p\b/.test(t));
+          };
+          const isMatch1080 = (opt) => {
+            const t = (opt.text || '').toLowerCase();
+            return /1080/.test(t) && (/premium/.test(t) || /p\b/.test(t));
+          };
+
+          let defaultOption = options.find((o) => o.videoUrl && (o.id === 'player-option-3' || isMatch720(o)));
+          if (!defaultOption) defaultOption = options.find((o) => o.videoUrl && (o.id === 'player-option-4' || isMatch1080(o)));
+          if (!defaultOption) defaultOption = options.find((o) => o.videoUrl);
+
           if (defaultOption) {
             const proxyUrl = buildProxiedUrl(defaultOption.videoUrl);
             setSelectedVideoUrl(proxyUrl);
