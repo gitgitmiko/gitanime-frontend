@@ -118,6 +118,19 @@ export default function Home() {
         {router.asPath.includes('?search=') && (
           <meta name="robots" content="noindex,follow" />
         )}
+        {/* JSON-LD: Organization */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: 'GitAnime',
+              url: 'https://gitanime-web.vercel.app/',
+              logo: 'https://gitanime-web.vercel.app/favicon.svg'
+            }),
+          }}
+        />
         {/* JSON-LD: WebSite + SearchAction */}
         <script
           type="application/ld+json"
