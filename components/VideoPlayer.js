@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import ReactPlayer from 'react-player';
-import { FiPlay, FiPause, FiVolume2, FiVolumeX, FiMaximize, FiSettings, FiRotateCw, FiChevronLeft } from 'react-icons/fi';
+import { FiPlay, FiPause, FiVolume2, FiVolumeX, FiMaximize, FiSettings, FiRotateCw, FiChevronLeft, FiMaximize2, FiMinimize2 } from 'react-icons/fi';
 
 export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
   const [playing, setPlaying] = useState(false);
@@ -15,6 +15,7 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
   const [showSettings, setShowSettings] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [error, setError] = useState(null);
+  const [fitContain, setFitContain] = useState(true); // Fullscreen: default FIT to avoid crop
 
   const containerRef = useRef(null);
   const playerRef = useRef(null);
@@ -115,6 +116,7 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
       setIsFullscreen(nowFullscreen);
       // Tampilkan kontrol sementara saat masuk fullscreen agar tombol Back terlihat
       if (nowFullscreen) {
+        setFitContain(true); // default ke FIT saat masuk fullscreen
         setShowControls(true);
         if (hideControlsTimeoutRef.current) clearTimeout(hideControlsTimeoutRef.current);
         if (playing) {
@@ -270,7 +272,12 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
                 crossOrigin: 'anonymous',
                 playsInline: true,
                 controlsList: 'nodownload',
-                preload: 'metadata'
+                preload: 'metadata',
+                style: {
+                  objectFit: isFullscreen && fitContain ? 'contain' : 'cover',
+                  width: '100%',
+                  height: '100%'
+                }
               }
             },
             hlsOptions: {
@@ -341,6 +348,17 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
               </div>
 
               <div className="flex items-center space-x-2 sm:space-x-3">
+                {/* Fit/Fill Toggle (hanya tampil saat fullscreen) */}
+                {isFullscreen && (
+                  <button
+                    onClick={() => setFitContain((v) => !v)}
+                    className="text-white hover:text-primary-400 transition-colors duration-200 flex items-center space-x-1"
+                  >
+                    {fitContain ? <FiMinimize2 className="w-5 h-5" /> : <FiMaximize2 className="w-5 h-5" />}
+                    <span className="hidden sm:inline text-xs">{fitContain ? 'Fit' : 'Fill'}</span>
+                  </button>
+                )}
+
                 {/* Settings Button */}
                 <button onClick={handleSettingsClick} className="text-white hover:text-primary-400 transition-colors duration-200">
                   <FiSettings className="w-5 h-5" />
