@@ -19,13 +19,27 @@ const nextConfig = {
       // Redirect lama ke rute SEO baru
       {
         source: '/anime-detail',
-        has: [{ type: 'query', key: 'url' }],
+        has: [
+          {
+            type: 'query',
+            key: 'url',
+            // Ambil slug dari URL: https://v1.samehadaku.how/anime/<slug>/
+            value: 'https?:\\/\\/v1\\.samehadaku\\.how\\/anime\\/(?<slug>[^/]+)\\/?',
+          },
+        ],
         destination: '/anime/:slug',
         permanent: true,
       },
       {
         source: '/episode-player',
-        has: [{ type: 'query', key: 'url' }],
+        has: [
+          {
+            type: 'query',
+            key: 'url',
+            // Ambil id dari URL: https://v1.samehadaku.how/<id>/
+            value: 'https?:\\/\\/v1\\.samehadaku\\.how\\/(?<id>[^/]+)\\/?',
+          },
+        ],
         destination: '/episode/:id',
         permanent: true,
       },
