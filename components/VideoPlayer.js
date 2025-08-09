@@ -100,6 +100,20 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
     setError('Gagal memuat video. Silakan coba lagi.');
   };
 
+  // Paksa object-fit pada elemen <video> internal ReactPlayer
+  const applyVideoObjectFit = useCallback(() => {
+    try {
+      const internal = playerRef.current && typeof playerRef.current.getInternalPlayer === 'function'
+        ? playerRef.current.getInternalPlayer()
+        : null;
+      if (internal && internal.tagName && internal.tagName.toLowerCase() === 'video') {
+        internal.style.objectFit = isFullscreen && fitContain ? 'contain' : 'cover';
+        internal.style.width = '100%';
+        internal.style.height = '100%';
+      }
+    } catch (_) {}
+  }, [isFullscreen, fitContain]);
+
   // Auto-hide controls on mobile while playing
   const showControlsTemporarily = useCallback(() => {
     setShowControls(true);
@@ -122,6 +136,8 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
         if (playing) {
           hideControlsTimeoutRef.current = setTimeout(() => setShowControls(false), 2500);
         }
+        // Terapkan ulang object-fit saat masuk fullscreen
+        setTimeout(applyVideoObjectFit, 0);
       }
     };
     document.addEventListener('fullscreenchange', onFsChange);
@@ -136,6 +152,11 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
       if (hideControlsTimeoutRef.current) clearTimeout(hideControlsTimeoutRef.current);
     };
   }, []);
+
+  // Terapkan ulang object-fit saat toggle Fit/Fill atau perubahan fullscreen
+  useEffect(() => {
+    applyVideoObjectFit();
+  }, [applyVideoObjectFit]);
 
   // Saat fullscreen, dengarkan pointer di dokumen agar tap dimana saja memunculkan kontrol
   useEffect(() => {
@@ -272,7 +293,9 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
           onProgress={handleProgress}
           onDuration={handleDuration}
           onError={handleError}
-          onReady={() => {}}
+          onReady={() => {
+            applyVideoObjectFit();
+          }}
           onSeek={(seconds) => {
             // Sync slider after programmatic seek
             if (duration > 0 && typeof seconds === 'number') {
@@ -371,7 +394,11 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
                 {/* Fit/Fill Toggle (hanya tampil saat fullscreen) */}
                 {isFullscreen && (
                   <button
-                    onClick={() => setFitContain((v) => !v)}
+                    onClick={() => {
+                      setFitContain((v) => !v);
+                      // Setelah toggle, paksa apply ke elemen video
+                      setTimeout(() => applyVideoObjectFit(), 0);
+                    }}
                     className="text-white hover:text-primary-400 transition-colors duration-200 flex items-center space-x-1"
                   >
                     {fitContain ? <FiMinimize2 className="w-5 h-5" /> : <FiMaximize2 className="w-5 h-5" />}
