@@ -21,6 +21,8 @@ function MyApp({ Component, pageProps }) {
         <meta property="og:description" content="Streaming anime terbaru dengan kualitas terbaik di GitAnime." />
         <meta property="og:image" content="/favicon.svg" />
         <meta httpEquiv="Content-Language" content="id-ID" />
+        {/* Google Search Console verification (URL-prefix property) */}
+        <meta name="google-site-verification" content="E9Fe_DOI__0wd8ydQGbeaHwf1PWss_bTf1wm3NX4PdY" />
         {/* Twitter default */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="GitAnime - Platform Streaming Anime Terbaik" />
