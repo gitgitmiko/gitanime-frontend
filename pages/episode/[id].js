@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { axiosGet } from '../../utils/api';
 import VideoPlayer from '../../components/VideoPlayer';
+import EpisodeLoading from '../../components/EpisodeLoading';
 
 export default function EpisodeById({ initialData, initialSelectedUrl, canonical }) {
   const router = useRouter();
@@ -12,6 +13,8 @@ export default function EpisodeById({ initialData, initialSelectedUrl, canonical
   const [error, setError] = useState(null);
   const [selectedVideoUrl, setSelectedVideoUrl] = useState(initialSelectedUrl || null);
   const [highlightOptions, setHighlightOptions] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadingMessage, setLoadingMessage] = useState('Memuat episode...');
   const optionsRef = useRef(null);
 
   const buildProxiedUrl = (originalUrl) => {
@@ -26,23 +29,60 @@ export default function EpisodeById({ initialData, initialSelectedUrl, canonical
     try {
       setLoading(true);
       setError(null);
+      setLoadingProgress(0);
+      setLoadingMessage('Memuat episode...');
+      
+      // Simulate loading progress
+      const progressInterval = setInterval(() => {
+        setLoadingProgress(prev => {
+          if (prev >= 80) return prev;
+          return prev + Math.random() * 10;
+        });
+      }, 200);
+      
+      const messageInterval = setInterval(() => {
+        setLoadingMessage(prev => {
+          const messages = [
+            'Memuat episode...',
+            'Mengambil data video...',
+            'Menyiapkan player...',
+            'Hampir selesai...'
+          ];
+          const currentIndex = messages.indexOf(prev);
+          const nextIndex = (currentIndex + 1) % messages.length;
+          return messages[nextIndex];
+        });
+      }, 1500);
+      
       const response = await axiosGet('/api/episode-video', { params: { url: episodeUrl } });
+      
+      // Clear intervals
+      clearInterval(progressInterval);
+      clearInterval(messageInterval);
+      
       if (response.data.success) {
-        setVideoData(response.data.data);
-        const options = response.data.data.playerOptions || [];
-        const isMatch720 = (opt) => /(premium|\b)p?\s*720/i.test(opt.text || '');
-        const isMatch1080 = (opt) => /(premium|\b)p?\s*1080/i.test(opt.text || '');
-        let def = options.find((o) => o.videoUrl && (o.id === 'player-option-3' || isMatch720(o)));
-        if (!def) def = options.find((o) => o.videoUrl && (o.id === 'player-option-4' || isMatch1080(o)));
-        if (!def) def = options.find((o) => o.videoUrl);
-        if (def) setSelectedVideoUrl(buildProxiedUrl(def.videoUrl));
-        else if (response.data.data.url) setSelectedVideoUrl(buildProxiedUrl(response.data.data.url));
+        setLoadingProgress(100);
+        setLoadingMessage('Episode berhasil dimuat!');
+        
+        // Small delay to show completion
+        setTimeout(() => {
+          setVideoData(response.data.data);
+          const options = response.data.data.playerOptions || [];
+          const isMatch720 = (opt) => /(premium|\b)p?\s*720/i.test(opt.text || '');
+          const isMatch1080 = (opt) => /(premium|\b)p?\s*1080/i.test(opt.text || '');
+          let def = options.find((o) => o.videoUrl && (o.id === 'player-option-3' || isMatch720(o)));
+          if (!def) def = options.find((o) => o.videoUrl && (o.id === 'player-option-4' || isMatch1080(o)));
+          if (!def) def = options.find((o) => o.videoUrl);
+          if (def) setSelectedVideoUrl(buildProxiedUrl(def.videoUrl));
+          else if (response.data.data.url) setSelectedVideoUrl(buildProxiedUrl(response.data.data.url));
+          setLoading(false);
+        }, 500);
       } else {
         setError(response.data.message || 'Tidak dapat memuat data video');
+        setLoading(false);
       }
     } catch (e) {
       setError(e?.message || 'Terjadi kesalahan saat memuat data video');
-    } finally {
       setLoading(false);
     }
   };
@@ -57,25 +97,50 @@ export default function EpisodeById({ initialData, initialSelectedUrl, canonical
     }
   };
 
+  // Handle initial loading state
+  useEffect(() => {
+    if (!initialData && !loading) {
+      setLoading(true);
+      setLoadingProgress(0);
+      setLoadingMessage('Memuat episode...');
+      
+      // Auto-fetch data if not available
+      const episodeUrl = `https://v1.samehadaku.how/${router.query.id}/`;
+      fetchVideoData(episodeUrl);
+    }
+  }, [initialData, loading, router.query.id]);
+
+  // Add loading state for better UX
+  useEffect(() => {
+    if (loading && loadingProgress < 100) {
+      const progressInterval = setInterval(() => {
+        setLoadingProgress(prev => {
+          if (prev >= 90) return prev;
+          return prev + Math.random() * 8;
+        });
+      }, 300);
+      
+      return () => clearInterval(progressInterval);
+    }
+  }, [loading, loadingProgress]);
+
   if (loading) {
-    return (
-      <div className="min-h-screen bg-dark-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto"></div>
-          <p className="text-white mt-4">Memuat video...</p>
-        </div>
-      </div>
-    );
+    return <EpisodeLoading title={title} progress={loadingProgress} message={loadingMessage} />;
   }
 
   if (error && !selectedVideoUrl) {
     return (
       <div className="min-h-screen bg-dark-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h1 className="text-white text-xl mb-2">Terjadi Kesalahan</h1>
-          <p className="text-dark-300 mb-4">{error}</p>
-          <button onClick={handleBack} className="btn-primary">Kembali</button>
+        <div className="text-center max-w-md mx-4">
+          <div className="text-red-500 text-6xl mb-4 animate-bounce">⚠️</div>
+          <h1 className="text-white text-xl mb-2 font-semibold">Terjadi Kesalahan</h1>
+          <p className="text-dark-300 mb-6 leading-relaxed">{error}</p>
+          <button 
+            onClick={handleBack} 
+            className="btn-primary px-6 py-3 rounded-lg hover:bg-primary-600 transition-colors duration-200"
+          >
+            ← Kembali
+          </button>
         </div>
       </div>
     );
@@ -197,7 +262,13 @@ export async function getServerSideProps({ params, query }) {
   try {
     const id = params?.id;
     if (!id) return { notFound: true };
+    
+    // Simulate API delay for better loading experience
     const episodeUrl = `https://v1.samehadaku.how/${id}/`;
+    
+    // Add artificial delay to simulate real API response time
+    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+    
     const res = await axiosGet('/api/episode-video', { params: { url: episodeUrl } });
     if (!res.data?.success) {
       return { props: { initialData: null, initialSelectedUrl: null, canonical: `https://gitanime-web.vercel.app/episode/${id}` } };
