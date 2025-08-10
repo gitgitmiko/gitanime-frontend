@@ -42,7 +42,7 @@ export default function Layout({ children }) {
             <div className="flex justify-between items-center h-16">
               {/* Logo */}
               <Link href="/" className="flex items-center space-x-2 flex-shrink-0">
-                <img src="/logo.svg" alt="GitAnime" className="w-30 h-30" />
+                <img src="/logo.svg" alt="GitAnime" className="w-20 h-20" />
                 <span className="text-xl font-bold text-gradient hidden sm:block">GitAnime</span>
                 <span className="text-lg font-bold text-gradient sm:hidden">GA</span>
               </Link>
@@ -171,7 +171,7 @@ export default function Layout({ children }) {
               {/* Logo and Description */}
               <div className="col-span-1 sm:col-span-2">
                 <div className="flex items-center space-x-2 mb-4">
-                  <img src="/logo.svg" alt="GitAnime" className="w-30 h-30" />
+                  <img src="/logo.svg" alt="GitAnime" className="w-20 h-20" />
                   <span className="text-xl font-bold text-gradient">GitAnime</span>
                 </div>
                 <p className="text-dark-300 mb-4 text-sm sm:text-base">
