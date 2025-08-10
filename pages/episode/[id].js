@@ -100,18 +100,31 @@ export default function EpisodeById({ initialData, initialSelectedUrl, canonical
 
   // Handle initial loading state and navigation
   useEffect(() => {
-    // Jika ada initialData, langsung set loading false
+    // Selalu mulai dengan loading state
+    setLoading(true);
+    setLoadingProgress(0);
+    setLoadingMessage('Memuat episode...');
+    
+    // Jika ada initialData, loading akan selesai setelah delay
     if (initialData) {
-      setLoading(false);
-      setLoadingProgress(100);
-      setLoadingMessage('Episode berhasil dimuat!');
+      // Simulate loading completion
+      const progressInterval = setInterval(() => {
+        setLoadingProgress(prev => {
+          if (prev >= 100) {
+            clearInterval(progressInterval);
+            setLoadingMessage('Episode berhasil dimuat!');
+            setTimeout(() => {
+              setLoading(false);
+            }, 500);
+            return 100;
+          }
+          return prev + Math.random() * 15;
+        });
+      }, 200);
+      
+      return () => clearInterval(progressInterval);
     } else {
       // Jika tidak ada initialData, fetch data
-      setLoading(true);
-      setLoadingProgress(0);
-      setLoadingMessage('Memuat episode...');
-      
-      // Auto-fetch data if not available
       const episodeUrl = `https://v1.samehadaku.how/${router.query.id}/`;
       fetchVideoData(episodeUrl);
     }
@@ -300,29 +313,58 @@ export async function getServerSideProps({ params, query }) {
     // Add artificial delay to simulate real API response time
     await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
     
-    const res = await axiosGet('/api/episode-video', { params: { url: episodeUrl } });
-    if (!res.data?.success) {
-      return { props: { initialData: null, initialSelectedUrl: null, canonical: `https://gitanime-web.vercel.app/episode/${id}` } };
+    // Try to fetch data, but don't fail if API is not available
+    let data = null;
+    let selected = null;
+    
+    try {
+      // Use fetch instead of axiosGet for server-side
+      const backend = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+      const response = await fetch(`${backend}/api/episode-video?url=${encodeURIComponent(episodeUrl)}`);
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          data = result.data || {};
+          const options = data.playerOptions || [];
+          const isMatch720 = (opt) => /(premium|\b)p?\s*720/i.test(opt.text || '');
+          const isMatch1080 = (opt) => /(premium|\b)p?\s*1080/i.test(opt.text || '');
+          let def = options.find((o) => o.videoUrl && (o.id === 'player-option-3' || isMatch720(o)));
+          if (!def) def = options.find((o) => o.videoUrl && (o.id === 'player-option-4' || isMatch1080(o)));
+          if (!def) def = options.find((o) => o.videoUrl);
+          
+          const buildProxiedUrl = (originalUrl) => {
+            if (!originalUrl || typeof originalUrl !== 'string') return null;
+            const isHls = originalUrl.toLowerCase().includes('.m3u8');
+            const path = isHls ? '/api/hls-proxy' : '/api/video-proxy';
+            return `${backend}${path}?url=${encodeURIComponent(originalUrl)}`;
+          };
+          
+          selected = def ? buildProxiedUrl(def.videoUrl) : data.url ? buildProxiedUrl(data.url) : null;
+        }
+      }
+    } catch (apiError) {
+      console.log('API not available, will fetch on client-side');
+      // Continue without data, will be fetched on client-side
     }
-    const data = res.data.data || {};
-    const options = data.playerOptions || [];
-    const isMatch720 = (opt) => /(premium|\b)p?\s*720/i.test(opt.text || '');
-    const isMatch1080 = (opt) => /(premium|\b)p?\s*1080/i.test(opt.text || '');
-    let def = options.find((o) => o.videoUrl && (o.id === 'player-option-3' || isMatch720(o)));
-    if (!def) def = options.find((o) => o.videoUrl && (o.id === 'player-option-4' || isMatch1080(o)));
-    if (!def) def = options.find((o) => o.videoUrl);
-    const backend = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
-    const buildProxiedUrl = (originalUrl) => {
-      if (!originalUrl || typeof originalUrl !== 'string') return null;
-      const isHls = originalUrl.toLowerCase().includes('.m3u8');
-      const path = isHls ? '/api/hls-proxy' : '/api/video-proxy';
-      return `${backend}${path}?url=${encodeURIComponent(originalUrl)}`;
-    };
-    const selected = def ? buildProxiedUrl(def.videoUrl) : data.url ? buildProxiedUrl(data.url) : null;
+    
     const canonical = `https://gitanime-web.vercel.app/episode/${id}`;
-    return { props: { initialData: data, initialSelectedUrl: selected, canonical } };
+    return { 
+      props: { 
+        initialData: data, 
+        initialSelectedUrl: selected, 
+        canonical 
+      } 
+    };
   } catch (e) {
-    return { props: { initialData: null, initialSelectedUrl: null, canonical: null } };
+    console.error('getServerSideProps error:', e);
+    return { 
+      props: { 
+        initialData: null, 
+        initialSelectedUrl: null, 
+        canonical: null 
+      } 
+    };
   }
 }
 
