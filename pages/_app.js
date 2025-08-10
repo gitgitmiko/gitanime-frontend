@@ -2,8 +2,46 @@ import '../styles/globals.css'
 import Layout from '../components/Layout'
 import { ConfigProvider } from '../contexts/ConfigContext'
 import Head from 'next/head'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/router'
+import NavigationLoading from '../components/NavigationLoading'
 
 function MyApp({ Component, pageProps }) {
+  const [isLoading, setIsLoading] = useState(false)
+  const [loadingMessage, setLoadingMessage] = useState('Memuat halaman...')
+  const router = useRouter()
+
+  useEffect(() => {
+    const handleStart = (url) => {
+      // Tampilkan loading untuk navigasi ke episode page
+      if (url.includes('/episode/')) {
+        setIsLoading(true)
+        setLoadingMessage('Memuat episode...')
+      } else if (url !== router.asPath) {
+        // Tampilkan loading untuk navigasi ke halaman lain
+        setIsLoading(true)
+        setLoadingMessage('Memuat halaman...')
+      }
+    }
+
+    const handleComplete = () => {
+      // Delay sedikit untuk memastikan loading terlihat
+      setTimeout(() => {
+        setIsLoading(false)
+      }, 300)
+    }
+
+    router.events.on('routeChangeStart', handleStart)
+    router.events.on('routeChangeComplete', handleComplete)
+    router.events.on('routeChangeError', handleComplete)
+
+    return () => {
+      router.events.off('routeChangeStart', handleStart)
+      router.events.off('routeChangeComplete', handleComplete)
+      router.events.off('routeChangeError', handleComplete)
+    }
+  }, [router])
+
   return (
     <ConfigProvider>
       <Head>
@@ -32,6 +70,12 @@ function MyApp({ Component, pageProps }) {
         <meta name="twitter:image" content="/favicon.svg" />
         <title>GitAnime - Platform Streaming Anime Terbaik</title>
       </Head>
+      
+      {/* Global Loading Overlay */}
+      {isLoading && (
+        <NavigationLoading message={loadingMessage} />
+      )}
+      
       <Layout>
         <Component {...pageProps} />
       </Layout>

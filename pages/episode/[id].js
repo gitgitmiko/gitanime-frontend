@@ -9,12 +9,13 @@ export default function EpisodeById({ initialData, initialSelectedUrl, canonical
   const router = useRouter();
   const { title } = router.query;
   const [videoData, setVideoData] = useState(initialData || null);
-  const [loading, setLoading] = useState(!initialData);
+  const [loading, setLoading] = useState(true); // Selalu mulai dengan loading true
   const [error, setError] = useState(null);
   const [selectedVideoUrl, setSelectedVideoUrl] = useState(initialSelectedUrl || null);
   const [highlightOptions, setHighlightOptions] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState('Memuat episode...');
+  const [isNavigating, setIsNavigating] = useState(false);
   const optionsRef = useRef(null);
 
   const buildProxiedUrl = (originalUrl) => {
@@ -97,9 +98,15 @@ export default function EpisodeById({ initialData, initialSelectedUrl, canonical
     }
   };
 
-  // Handle initial loading state
+  // Handle initial loading state and navigation
   useEffect(() => {
-    if (!initialData && !loading) {
+    // Jika ada initialData, langsung set loading false
+    if (initialData) {
+      setLoading(false);
+      setLoadingProgress(100);
+      setLoadingMessage('Episode berhasil dimuat!');
+    } else {
+      // Jika tidak ada initialData, fetch data
       setLoading(true);
       setLoadingProgress(0);
       setLoadingMessage('Memuat episode...');
@@ -108,7 +115,7 @@ export default function EpisodeById({ initialData, initialSelectedUrl, canonical
       const episodeUrl = `https://v1.samehadaku.how/${router.query.id}/`;
       fetchVideoData(episodeUrl);
     }
-  }, [initialData, loading, router.query.id]);
+  }, [initialData, router.query.id]);
 
   // Add loading state for better UX
   useEffect(() => {
@@ -124,7 +131,31 @@ export default function EpisodeById({ initialData, initialSelectedUrl, canonical
     }
   }, [loading, loadingProgress]);
 
-  if (loading) {
+  // Handle route change events for better loading experience
+  useEffect(() => {
+    const handleRouteChangeStart = (url) => {
+      if (url.includes('/episode/')) {
+        setIsNavigating(true);
+        setLoadingMessage('Memuat episode...');
+        setLoadingProgress(0);
+      }
+    };
+
+    const handleRouteChangeComplete = () => {
+      setIsNavigating(false);
+    };
+
+    router.events.on('routeChangeStart', handleRouteChangeStart);
+    router.events.on('routeChangeComplete', handleRouteChangeComplete);
+
+    return () => {
+      router.events.off('routeChangeStart', handleRouteChangeStart);
+      router.events.off('routeChangeComplete', handleRouteChangeComplete);
+    };
+  }, [router]);
+
+  // Tampilkan loading jika sedang loading atau navigating
+  if (loading || isNavigating) {
     return <EpisodeLoading title={title} progress={loadingProgress} message={loadingMessage} />;
   }
 
