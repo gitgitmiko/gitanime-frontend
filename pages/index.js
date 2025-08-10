@@ -4,11 +4,14 @@ import { useRouter } from 'next/router';
 import { axiosGet } from '../utils/api';
 import AnimeCard from '../components/AnimeCard';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { FiSearch, FiFilter, FiGrid, FiList, FiRefreshCw } from 'react-icons/fi';
+import ScrapingStatus from '../components/ScrapingStatus';
+import { FiSearch, FiFilter, FiGrid, FiList, FiRefreshCw, FiDatabase } from 'react-icons/fi';
 
 export default function Home() {
   const [anime, setAnime] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [scrapingStatus, setScrapingStatus] = useState('idle'); // idle, scraping, completed, error
+  const [scrapingProgress, setScrapingProgress] = useState(0);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -17,6 +20,9 @@ export default function Home() {
   const [viewMode, setViewMode] = useState('grid'); // grid or list
   const router = useRouter();
 
+  // Polling untuk status scraping
+  const [pollingInterval, setPollingInterval] = useState(null);
+
   useEffect(() => {
     const { search } = router.query;
     if (search) {
@@ -24,9 +30,55 @@ export default function Home() {
     }
   }, [router.query]);
 
+  // Fungsi untuk mengecek status scraping
+  const checkScrapingStatus = useCallback(async () => {
+    try {
+      const response = await axiosGet('/api/scraping-status');
+      if (response.data.success) {
+        const { status, progress, message } = response.data.data;
+        setScrapingStatus(status);
+        setScrapingProgress(progress || 0);
+        
+        // Jika scraping selesai, hentikan polling dan loading
+        if (status === 'completed' || status === 'error') {
+          if (pollingInterval) {
+            clearInterval(pollingInterval);
+            setPollingInterval(null);
+          }
+          
+          // Jika scraping selesai, set loading false
+          if (status === 'completed') {
+            setLoading(false);
+          } else {
+            setLoading(false);
+            setError('Gagal memuat data anime');
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error checking scraping status:', error);
+    }
+  }, [pollingInterval]);
+
+  // Mulai polling saat komponen mount
+  useEffect(() => {
+    if (loading && scrapingStatus === 'idle') {
+      const interval = setInterval(checkScrapingStatus, 2000); // Check setiap 2 detik
+      setPollingInterval(interval);
+      
+      // Cleanup interval
+      return () => {
+        if (interval) clearInterval(interval);
+      };
+    }
+  }, [loading, scrapingStatus, checkScrapingStatus]);
+
   const fetchAnime = useCallback(async () => {
     try {
       setLoading(true);
+      setScrapingStatus('idle');
+      setScrapingProgress(0);
+      
       const params = {
         page: currentPage,
         limit: 20,
@@ -36,18 +88,31 @@ export default function Home() {
       const response = await axiosGet('/api/latest-episodes', { params });
       
       if (response.data.success) {
-        setAnime(response.data.data.episodes || []);
+        const episodes = response.data.data.episodes || [];
+        setAnime(episodes);
+        
         // Use pagination data from API
         const pagination = response.data.data.pagination;
         setTotalPages(pagination.totalPages);
         setTotalItems(pagination.totalItems);
+        
+        // Jika data kosong, kemungkinan scraping sedang berjalan
+        if (episodes.length === 0) {
+          setScrapingStatus('scraping');
+          setScrapingProgress(10);
+          // Jangan set loading false jika data kosong
+        } else {
+          setScrapingStatus('completed');
+          setScrapingProgress(100);
+          setLoading(false);
+        }
       } else {
         setError(response.data.message || 'Gagal memuat data anime');
+        setLoading(false);
       }
     } catch (error) {
       console.error('Error fetching anime:', error);
       setError('Gagal memuat data anime');
-    } finally {
       setLoading(false);
     }
   }, [currentPage, searchQuery]);
@@ -70,6 +135,10 @@ export default function Home() {
   };
 
   const handleForceRefresh = () => {
+    setLoading(true);
+    setScrapingStatus('scraping');
+    setScrapingProgress(10);
+    
     const params = {
       page: currentPage,
       limit: 20,
@@ -79,11 +148,28 @@ export default function Home() {
 
     axiosGet('/api/latest-episodes', { params }).then(response => {
       if (response.data.success) {
-        setAnime(response.data.data.episodes || []);
+        const episodes = response.data.data.episodes || [];
+        setAnime(episodes);
         const pagination = response.data.data.pagination;
         setTotalPages(pagination.totalPages);
         setTotalItems(pagination.totalItems);
+        
+        if (episodes.length === 0) {
+          setScrapingStatus('scraping');
+          setScrapingProgress(20);
+        } else {
+          setScrapingStatus('completed');
+          setScrapingProgress(100);
+          setLoading(false);
+        }
+      } else {
+        setError(response.data.message || 'Gagal memuat data anime');
+        setLoading(false);
       }
+    }).catch(error => {
+      console.error('Error force refresh:', error);
+      setError('Gagal memuat data anime');
+      setLoading(false);
     });
   };
 
@@ -93,8 +179,31 @@ export default function Home() {
     router.push('/');
   };
 
-  if (loading && anime.length === 0) {
-    return <LoadingSpinner />;
+  // Tampilkan loading dengan status scraping
+  if (loading || scrapingStatus === 'scraping') {
+    return (
+      <div className="space-y-8">
+        <div className="text-center py-12">
+          <h1 className="text-4xl md:text-6xl font-bold text-gradient mb-4">
+            Selamat Datang di GitAnime
+          </h1>
+          <p className="text-xl text-dark-300 mb-8 max-w-2xl mx-auto">
+            Platform streaming anime terbaik dengan koleksi terlengkap dan update terbaru.
+            Nikmati anime favorit Anda dengan kualitas terbaik.
+          </p>
+        </div>
+        
+        {/* Scraping Status */}
+        <ScrapingStatus 
+          status={scrapingStatus}
+          progress={scrapingProgress}
+          message="Mengumpulkan episode anime terbaru..."
+          estimatedTime="2-3 menit"
+        />
+        
+        <LoadingSpinner size="lg" text="Mohon tunggu..." />
+      </div>
+    );
   }
 
   if (error) {
