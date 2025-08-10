@@ -5,6 +5,7 @@ import Head from 'next/head'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import NavigationLoading from '../components/NavigationLoading'
+import ErrorBoundary from '../components/ErrorBoundary'
 
 function MyApp({ Component, pageProps }) {
   const [isLoading, setIsLoading] = useState(false)
@@ -45,9 +46,9 @@ function MyApp({ Component, pageProps }) {
   return (
     <ConfigProvider>
       <Head>
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="icon" type="image/svg+xml" href="/logo.svg" />
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="/favicon.svg" />
+        <link rel="apple-touch-icon" href="/logo.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="description" content="GitAnime - Platform streaming anime terbaik dengan koleksi terlengkap dan update terbaru." />
         <meta name="keywords" content="anime, streaming anime, nonton anime, subtitle indonesia, samehadaku" />
@@ -57,7 +58,7 @@ function MyApp({ Component, pageProps }) {
         <meta property="og:site_name" content="GitAnime" />
         <meta property="og:title" content="GitAnime - Platform Streaming Anime Terbaik" />
         <meta property="og:description" content="Streaming anime terbaru dengan kualitas terbaik di GitAnime." />
-        <meta property="og:image" content="/favicon.svg" />
+        <meta property="og:image" content="/logo.svg" />
         <meta httpEquiv="Content-Language" content="id-ID" />
         {/* Google Search Console verification (URL-prefix property) */}
         <meta name="google-site-verification" content="E9Fe_DOI__0wd8ydQGbeaHwf1PWss_bTf1wm3NX4PdY" />
@@ -67,7 +68,7 @@ function MyApp({ Component, pageProps }) {
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="GitAnime - Platform Streaming Anime Terbaik" />
         <meta name="twitter:description" content="Streaming anime terbaru dengan kualitas terbaik di GitAnime." />
-        <meta name="twitter:image" content="/favicon.svg" />
+        <meta name="twitter:image" content="/logo.svg" />
         <title>GitAnime - Platform Streaming Anime Terbaik</title>
       </Head>
       
@@ -77,7 +78,9 @@ function MyApp({ Component, pageProps }) {
       )}
       
       <Layout>
-        <Component {...pageProps} />
+        <ErrorBoundary>
+          <Component {...pageProps} />
+        </ErrorBoundary>
       </Layout>
     </ConfigProvider>
   )

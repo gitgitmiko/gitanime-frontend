@@ -5,6 +5,8 @@ import { axiosGet } from '../utils/api';
 import AnimeCard from '../components/AnimeCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ScrapingStatus from '../components/ScrapingStatus';
+import AnimeListSkeleton from '../components/AnimeListSkeleton';
+import { useToast, ToastContainer } from '../components/Toast';
 import { FiSearch, FiFilter, FiGrid, FiList, FiRefreshCw, FiDatabase } from 'react-icons/fi';
 
 export default function Home() {
@@ -19,6 +21,7 @@ export default function Home() {
   const [totalItems, setTotalItems] = useState(0);
   const [viewMode, setViewMode] = useState('grid'); // grid or list
   const router = useRouter();
+  const { showSuccess, showError, showInfo, toasts, removeToast } = useToast();
 
   // Polling untuk status scraping
   const [pollingInterval, setPollingInterval] = useState(null);
@@ -49,9 +52,11 @@ export default function Home() {
           // Jika scraping selesai, set loading false
           if (status === 'completed') {
             setLoading(false);
+            showSuccess('Data anime berhasil dimuat!');
           } else {
             setLoading(false);
             setError('Gagal memuat data anime');
+            showError('Gagal memuat data anime');
           }
         }
       }
@@ -106,15 +111,17 @@ export default function Home() {
           setScrapingProgress(100);
           setLoading(false);
         }
-      } else {
-        setError(response.data.message || 'Gagal memuat data anime');
+              } else {
+          setError(response.data.message || 'Gagal memuat data anime');
+          setLoading(false);
+          showError(response.data.message || 'Gagal memuat data anime');
+        }
+      } catch (error) {
+        console.error('Error fetching anime:', error);
+        setError('Gagal memuat data anime');
         setLoading(false);
+        showError('Gagal memuat data anime');
       }
-    } catch (error) {
-      console.error('Error fetching anime:', error);
-      setError('Gagal memuat data anime');
-      setLoading(false);
-    }
   }, [currentPage, searchQuery]);
 
   useEffect(() => {
@@ -126,6 +133,7 @@ export default function Home() {
     if (searchQuery.trim()) {
       router.push(`/?search=${encodeURIComponent(searchQuery.trim())}`);
       setCurrentPage(1);
+      showInfo(`Mencari: "${searchQuery.trim()}"`);
     }
   };
 
@@ -162,21 +170,24 @@ export default function Home() {
           setScrapingProgress(100);
           setLoading(false);
         }
-      } else {
-        setError(response.data.message || 'Gagal memuat data anime');
+              } else {
+          setError(response.data.message || 'Gagal memuat data anime');
+          setLoading(false);
+          showError(response.data.message || 'Gagal memuat data anime');
+        }
+      }).catch(error => {
+        console.error('Error force refresh:', error);
+        setError('Gagal memuat data anime');
         setLoading(false);
-      }
-    }).catch(error => {
-      console.error('Error force refresh:', error);
-      setError('Gagal memuat data anime');
-      setLoading(false);
-    });
+        showError('Gagal memuat data anime');
+      });
   };
 
   const clearSearch = () => {
     setSearchQuery('');
     setCurrentPage(1);
     router.push('/');
+    showInfo('Pencarian dibersihkan');
   };
 
   // Tampilkan loading dengan status scraping
@@ -201,7 +212,22 @@ export default function Home() {
           estimatedTime="2-3 menit"
         />
         
-        <LoadingSpinner size="lg" text="Mohon tunggu..." />
+        {/* Skeleton Loading untuk Anime List */}
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold text-white">Episode Terbaru</h2>
+            <div className="flex items-center space-x-2 bg-dark-800 rounded-lg p-1">
+              <div className="p-2 rounded-md bg-primary-600 text-white">
+                <FiGrid className="w-5 h-5" />
+              </div>
+              <div className="p-2 rounded-md text-dark-300">
+                <FiList className="w-5 h-5" />
+              </div>
+            </div>
+          </div>
+          
+          <AnimeListSkeleton viewMode={viewMode} count={20} />
+        </div>
       </div>
     );
   }
@@ -410,6 +436,9 @@ export default function Home() {
           <p className="text-dark-300 mt-2">Memuat lebih banyak...</p>
         </div>
       )}
+
+      {/* Toast Container */}
+      <ToastContainer toasts={toasts} onRemoveToast={removeToast} />
     </div>
   );
 }

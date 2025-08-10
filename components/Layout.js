@@ -33,7 +33,7 @@ export default function Layout({ children }) {
         <title>GitAnime - Streaming Anime Terbaik</title>
         <meta name="description" content="Nonton anime subtitle Indonesia terlengkap dan terbaru" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/logo.svg" />
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-dark-900 via-dark-800 to-dark-900">
@@ -43,9 +43,7 @@ export default function Layout({ children }) {
             <div className="flex justify-between items-center h-16">
               {/* Logo */}
               <Link href="/" className="flex items-center space-x-2 flex-shrink-0">
-                <div className="w-8 h-8 bg-gradient-anime rounded-lg flex items-center justify-center">
-                  <FiPlay className="w-5 h-5 text-white" />
-                </div>
+                <img src="/logo.svg" alt="GitAnime" className="w-10 h-8" />
                 <span className="text-xl font-bold text-gradient hidden sm:block">GitAnime</span>
                 <span className="text-lg font-bold text-gradient sm:hidden">GA</span>
               </Link>
@@ -174,9 +172,7 @@ export default function Layout({ children }) {
               {/* Logo and Description */}
               <div className="col-span-1 sm:col-span-2">
                 <div className="flex items-center space-x-2 mb-4">
-                  <div className="w-8 h-8 bg-gradient-anime rounded-lg flex items-center justify-center">
-                    <FiPlay className="w-5 h-5 text-white" />
-                  </div>
+                  <img src="/logo.svg" alt="GitAnime" className="w-8 h-6" />
                   <span className="text-xl font-bold text-gradient">GitAnime</span>
                 </div>
                 <p className="text-dark-300 mb-4 text-sm sm:text-base">
