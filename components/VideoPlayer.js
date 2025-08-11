@@ -21,6 +21,7 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
   const playerRef = useRef(null);
   const hideControlsTimeoutRef = useRef(null);
   const lastSeekFractionRef = useRef(null);
+  const [isVideoFocused, setIsVideoFocused] = useState(false);
 
   useEffect(() => {
     if (videoUrl) {
@@ -34,14 +35,23 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
     }
   }, [videoUrl]);
 
-  // Keyboard shortcuts untuk video player
+  // Keyboard shortcuts untuk video player - Perbaikan stabilitas
   useEffect(() => {
+    // Hanya aktifkan keyboard shortcuts jika video player sudah siap
+    if (!videoUrl || !playerRef.current) return;
+
     const handleKeyDown = (e) => {
-      // Hanya aktifkan keyboard shortcuts jika video player sedang fokus atau video sedang play
-      if (!videoUrl || !playerRef.current) return;
-      
       // Mencegah keyboard shortcuts saat user sedang mengetik di input field
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      
+      // Hanya aktifkan shortcuts jika video player fokus atau tidak ada elemen lain yang fokus
+      if (!isVideoFocused && document.activeElement && document.activeElement !== document.body) {
+        console.log('Keyboard shortcut blocked: Video not focused, active element:', document.activeElement.tagName);
+        return;
+      }
+      
+      // Debug log untuk keyboard shortcuts
+      console.log('Keyboard shortcut activated:', e.code, 'Video focused:', isVideoFocused);
       
       switch (e.code) {
         case 'Space':
@@ -91,14 +101,14 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
       }
     };
 
-    // Tambahkan event listener
-    document.addEventListener('keydown', handleKeyDown);
+    // Tambahkan event listener dengan passive: false untuk preventDefault
+    document.addEventListener('keydown', handleKeyDown, { passive: false });
     
     // Cleanup
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [videoUrl, played, duration, volume]); // Dependencies untuk useEffect
+  }, [videoUrl, isVideoFocused, played, duration]); // Dependencies yang diperlukan
 
   const handlePlayPause = () => {
     setPlaying(!playing);
@@ -333,13 +343,16 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
   return (
     <div 
       ref={containerRef}
-      className="video-player w-full rounded-lg overflow-hidden bg-black select-none"
+      className={`video-player w-full rounded-lg overflow-hidden bg-black select-none ${isVideoFocused ? 'ring-2 ring-primary-500 ring-opacity-50' : ''}`}
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => setShowControls(false)}
       onTouchStart={showControlsTemporarily}
       onPointerDown={showControlsTemporarily}
       onPointerMove={showControlsTemporarily}
       onClick={showControlsTemporarily}
+      onFocus={() => setIsVideoFocused(true)}
+      onBlur={() => setIsVideoFocused(false)}
+      tabIndex={0}
     >
       {/* Aspect ratio wrapper */}
       <div
@@ -376,6 +389,10 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
           onError={handleError}
           onReady={() => {
             applyVideoObjectFit();
+            // Auto-focus video player saat siap untuk keyboard shortcuts
+            if (containerRef.current) {
+              containerRef.current.focus();
+            }
           }}
           onSeek={(seconds) => {
             // Sync slider after programmatic seek
@@ -555,10 +572,14 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
         <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20">
           <div className="group relative">
             <button
-              className="text-white/70 hover:text-white text-xs bg-black/40 hover:bg-black/60 px-2 py-1 rounded transition-colors duration-200"
+              className={`text-xs px-2 py-1 rounded transition-colors duration-200 ${
+                isVideoFocused 
+                  ? 'text-primary-400 bg-primary-900/60 border border-primary-500' 
+                  : 'text-white/70 hover:text-white bg-black/40 hover:bg-black/60'
+              }`}
               title="Keyboard Shortcuts"
             >
-              ⌨️
+              ⌨️ {isVideoFocused ? 'Active' : ''}
             </button>
             <div className="absolute right-0 top-full mt-2 bg-black/90 border border-dark-600 rounded-lg p-3 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto min-w-[200px]">
               <div className="font-semibold mb-2 text-primary-400">Keyboard Shortcuts:</div>
@@ -570,6 +591,11 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
                 <div><span className="text-primary-300">↓</span> - Volume Down</div>
                 <div><span className="text-primary-300">M</span> - Mute/Unmute</div>
                 <div><span className="text-primary-300">F</span> - Fullscreen</div>
+                <div className="mt-2 pt-2 border-t border-dark-600">
+                  <div className={`text-xs ${isVideoFocused ? 'text-green-400' : 'text-yellow-400'}`}>
+                    {isVideoFocused ? '✅ Keyboard shortcuts aktif' : '⚠️ Klik video untuk aktifkan keyboard shortcuts'}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
