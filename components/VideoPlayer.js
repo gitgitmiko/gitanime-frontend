@@ -34,6 +34,72 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
     }
   }, [videoUrl]);
 
+  // Keyboard shortcuts untuk video player
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Hanya aktifkan keyboard shortcuts jika video player sedang fokus atau video sedang play
+      if (!videoUrl || !playerRef.current) return;
+      
+      // Mencegah keyboard shortcuts saat user sedang mengetik di input field
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      
+      switch (e.code) {
+        case 'Space':
+          e.preventDefault(); // Mencegah scroll halaman
+          handlePlayPause();
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          // Lompat ke belakang 10 detik
+          if (playerRef.current && duration > 0) {
+            const newTime = Math.max(0, (played * duration) - 10);
+            const newFraction = newTime / duration;
+            setPlayed(newFraction);
+            playerRef.current.seekTo(newFraction, 'fraction');
+          }
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          // Lompat ke depan 10 detik
+          if (playerRef.current && duration > 0) {
+            const newTime = Math.min(duration, (played * duration) + 10);
+            const newFraction = newTime / duration;
+            setPlayed(newFraction);
+            playerRef.current.seekTo(newFraction, 'fraction');
+          }
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          // Naikkan volume
+          setVolume(prev => Math.min(1, prev + 0.1));
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          // Turunkan volume
+          setVolume(prev => Math.max(0, prev - 0.1));
+          break;
+        case 'KeyM':
+          e.preventDefault();
+          handleToggleMute();
+          break;
+        case 'KeyF':
+          e.preventDefault();
+          toggleFullscreen();
+          break;
+        default:
+          break;
+      }
+    };
+
+    // Tambahkan event listener
+    document.addEventListener('keydown', handleKeyDown);
+    
+    // Cleanup
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [videoUrl, played, duration, volume]); // Dependencies untuk useEffect
+
   const handlePlayPause = () => {
     setPlaying(!playing);
   };
@@ -483,6 +549,30 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
           <h3 className="text-white text-sm sm:text-base font-medium text-shadow-lg">
             {title}
           </h3>
+        </div>
+
+        {/* Keyboard Shortcuts Info - Muncul saat hover atau focus */}
+        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20">
+          <div className="group relative">
+            <button
+              className="text-white/70 hover:text-white text-xs bg-black/40 hover:bg-black/60 px-2 py-1 rounded transition-colors duration-200"
+              title="Keyboard Shortcuts"
+            >
+              ⌨️
+            </button>
+            <div className="absolute right-0 top-full mt-2 bg-black/90 border border-dark-600 rounded-lg p-3 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto min-w-[200px]">
+              <div className="font-semibold mb-2 text-primary-400">Keyboard Shortcuts:</div>
+              <div className="space-y-1">
+                <div><span className="text-primary-300">Space</span> - Play/Pause</div>
+                <div><span className="text-primary-300">←</span> - Back 10s</div>
+                <div><span className="text-primary-300">→</span> - Forward 10s</div>
+                <div><span className="text-primary-300">↑</span> - Volume Up</div>
+                <div><span className="text-primary-300">↓</span> - Volume Down</div>
+                <div><span className="text-primary-300">M</span> - Mute/Unmute</div>
+                <div><span className="text-primary-300">F</span> - Fullscreen</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
