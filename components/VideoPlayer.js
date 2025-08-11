@@ -29,6 +29,7 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
       setPlayed(0);
       setPlaybackRate(1);
       setShowSettings(false);
+      setSeeking(false);
       lastSeekFractionRef.current = null;
     }
   }, [videoUrl]);
@@ -59,18 +60,27 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
   };
 
   const handleSeekMouseUp = (e) => {
-    setSeeking(false);
     const newTime = parseFloat(e.target.value);
     setPlayed(newTime);
+    setSeeking(false);
+    
     // Seek player to new position
     try {
       if (playerRef.current) {
+        console.log('Seeking to:', newTime, 'fraction');
         playerRef.current.seekTo(newTime, 'fraction');
       }
-    } catch (_) {}
+    } catch (error) {
+      console.error('Seek error:', error);
+    }
+  };
 
-    // Heuristic: if after a short delay position snaps back to ~0, fallback to direct URL (proxy likely not supporting ranges)
-    // Removed auto-bypass logic; always use proxy
+  // Tambahkan handler untuk seek sambil drag
+  const handleSeekChange = (e) => {
+    const newTime = parseFloat(e.target.value);
+    setPlayed(newTime);
+    // Update seeking state untuk mencegah conflict dengan onProgress
+    setSeeking(true);
   };
 
   const handleProgress = (state) => {
@@ -78,6 +88,11 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
       setPlayed(state.played);
     }
     setLoaded(state.loaded);
+    
+    // Debug: log progress untuk troubleshooting
+    if (seeking) {
+      console.log('Progress blocked by seeking state');
+    }
   };
 
   const handleDuration = (duration) => {
@@ -302,6 +317,8 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
               const fraction = seconds / duration;
               if (!Number.isNaN(fraction)) {
                 setPlayed(Math.max(0, Math.min(1, fraction)));
+                // Reset seeking state setelah seek selesai
+                setSeeking(false);
               }
             }
           }}
@@ -350,7 +367,13 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
                 onPointerDown={handleSeekMouseDown}
                 onPointerUp={handleSeekMouseUp}
                 onChange={handleSeek}
+                onMouseDown={handleSeekMouseDown}
+                onMouseUp={handleSeekMouseUp}
+                onMouseMove={handleSeekChange}
+                onTouchMove={handleSeekChange}
+                onTouchEnd={handleSeekMouseUp}
                 className="w-full h-1.5 bg-dark-600 rounded-lg appearance-none cursor-pointer slider"
+                style={{ pointerEvents: 'auto', touchAction: 'none' }}
               />
             </div>
 
@@ -381,6 +404,7 @@ export default function VideoPlayer({ videoUrl, title, onOpenSettings }) {
                     value={muted ? 0 : volume}
                     onChange={handleVolumeChange}
                     className="w-24 h-1 bg-dark-600 rounded-lg appearance-none cursor-pointer slider"
+                    style={{ pointerEvents: 'auto' }}
                   />
                 </div>
 
