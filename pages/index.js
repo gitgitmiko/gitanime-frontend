@@ -4,7 +4,6 @@ import { useRouter } from 'next/router';
 import { axiosGet } from '../utils/api';
 import AnimeCard from '../components/AnimeCard';
 import LoadingSpinner from '../components/LoadingSpinner';
-import ScrapingStatus from '../components/ScrapingStatus';
 import AnimeListSkeleton from '../components/AnimeListSkeleton';
 import { useToast, ToastContainer } from '../components/Toast';
 import { FiSearch, FiFilter, FiGrid, FiList } from 'react-icons/fi';
@@ -12,8 +11,7 @@ import { FiSearch, FiFilter, FiGrid, FiList } from 'react-icons/fi';
 export default function Home() {
   const [anime, setAnime] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [scrapingStatus, setScrapingStatus] = useState('idle'); // idle, scraping, completed, error
-  const [scrapingProgress, setScrapingProgress] = useState(0);
+  // Removed scraping status UI per new backend behavior
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -23,9 +21,6 @@ export default function Home() {
   const router = useRouter();
   const { showSuccess, showError, showInfo, toasts, removeToast } = useToast();
 
-  // Polling untuk status scraping
-  const [pollingInterval, setPollingInterval] = useState(null);
-
   useEffect(() => {
     const { search } = router.query;
     if (search) {
@@ -33,57 +28,10 @@ export default function Home() {
     }
   }, [router.query]);
 
-  // Fungsi untuk mengecek status scraping
-  const checkScrapingStatus = useCallback(async () => {
-    try {
-      const response = await axiosGet('/api/scraping-status');
-      if (response.data.success) {
-        const { status, progress, message } = response.data.data;
-        setScrapingStatus(status);
-        setScrapingProgress(progress || 0);
-        
-        // Jika scraping selesai, hentikan polling dan loading
-        if (status === 'completed' || status === 'error') {
-          if (pollingInterval) {
-            clearInterval(pollingInterval);
-            setPollingInterval(null);
-          }
-          
-          // Jika scraping selesai, set loading false
-          if (status === 'completed') {
-            setLoading(false);
-            showSuccess('Data anime berhasil dimuat!');
-          } else {
-            setLoading(false);
-            setError('Gagal memuat data anime');
-            showError('Gagal memuat data anime');
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error checking scraping status:', error);
-    }
-  }, [pollingInterval]);
-
-  // Mulai polling saat komponen mount
-  useEffect(() => {
-    if (loading && scrapingStatus === 'idle') {
-      const interval = setInterval(checkScrapingStatus, 2000); // Check setiap 2 detik
-      setPollingInterval(interval);
-      
-      // Cleanup interval
-      return () => {
-        if (interval) clearInterval(interval);
-      };
-    }
-  }, [loading, scrapingStatus, checkScrapingStatus]);
-
   const fetchAnime = useCallback(async () => {
     try {
       setLoading(true);
-      setScrapingStatus('idle');
-      setScrapingProgress(0);
-      
+      // Scraping status logic removed; backend serves JSON directly
       const params = {
         page: currentPage,
         limit: 20,
@@ -100,17 +48,7 @@ export default function Home() {
         const pagination = response.data.data.pagination;
         setTotalPages(pagination.totalPages);
         setTotalItems(pagination.totalItems);
-        
-        // Jika data kosong, kemungkinan scraping sedang berjalan
-        if (episodes.length === 0) {
-          setScrapingStatus('scraping');
-          setScrapingProgress(10);
-          // Jangan set loading false jika data kosong
-        } else {
-          setScrapingStatus('completed');
-          setScrapingProgress(100);
-          setLoading(false);
-        }
+        setLoading(false);
               } else {
           setError(response.data.message || 'Gagal memuat data anime');
           setLoading(false);
@@ -152,7 +90,7 @@ export default function Home() {
   };
 
   // Tampilkan loading dengan status scraping
-  if (loading || scrapingStatus === 'scraping') {
+  if (loading) {
     return (
       <div className="space-y-8">
         <div className="text-center py-12">
@@ -164,14 +102,6 @@ export default function Home() {
             Nikmati anime favorit Anda dengan kualitas terbaik.
           </p>
         </div>
-        
-        {/* Scraping Status */}
-        <ScrapingStatus 
-          status={scrapingStatus}
-          progress={scrapingProgress}
-          message="Mengumpulkan episode anime terbaru..."
-          estimatedTime="2-3 menit"
-        />
         
         {/* Skeleton Loading untuk Anime List */}
         <div className="space-y-6">
