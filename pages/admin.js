@@ -22,6 +22,10 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [scraping, setScraping] = useState(false);
+  const [scrapingLatest, setScrapingLatest] = useState(false);
+  const [scrapingAnimeList, setScrapingAnimeList] = useState(false);
+  const [scrapingLatestBatch, setScrapingLatestBatch] = useState(false);
+  const [scrapingAnimeListBatch, setScrapingAnimeListBatch] = useState(false);
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState(null);
@@ -167,6 +171,95 @@ export default function Admin() {
     }
   };
 
+  const handleScrapeLatestEpisodes = async () => {
+    setScrapingLatest(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      await axiosPost('/api/scrape-latest-episodes', { password });
+      setSuccess('Scraping latest episodes berhasil dijalankan!');
+    } catch (error) {
+      console.error('Error during scraping latest episodes:', error);
+      setError('Gagal menjalankan scraping latest episodes');
+    } finally {
+      setScrapingLatest(false);
+    }
+  };
+
+  const handleScrapeAnimeListOnly = async () => {
+    setScrapingAnimeList(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      await axiosPost('/api/scrape-anime-list', { password });
+      setSuccess('Scraping anime list berhasil dijalankan!');
+    } catch (error) {
+      console.error('Error during scraping anime list:', error);
+      setError('Gagal menjalankan scraping anime list');
+    } finally {
+      setScrapingAnimeList(false);
+    }
+  };
+
+  // Batch states
+  const [latestStartPage, setLatestStartPage] = useState('1');
+  const [latestEndPage, setLatestEndPage] = useState('');
+  const [animeStartPage, setAnimeStartPage] = useState('1');
+  const [animeEndPage, setAnimeEndPage] = useState('');
+
+  const parsePositiveInt = (value) => {
+    const n = parseInt(value, 10);
+    return Number.isNaN(n) || n <= 0 ? null : n;
+  };
+
+  const handleScrapeLatestEpisodesBatch = async () => {
+    setScrapingLatestBatch(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const start = parsePositiveInt(latestStartPage);
+      if (!start) {
+        setError('Start page (latest episodes) harus angka > 0');
+        setScrapingLatestBatch(false);
+        return;
+      }
+      const end = latestEndPage ? parsePositiveInt(latestEndPage) : null;
+      const payload = { password, startPage: start };
+      if (end && end >= start) payload.endPage = end;
+      await axiosPost('/api/scrape-latest-episodes-batch', payload);
+      setSuccess('Scraping batch latest episodes dijalankan!');
+    } catch (error) {
+      console.error('Error during scraping latest episodes batch:', error);
+      setError('Gagal menjalankan scraping batch latest episodes');
+    } finally {
+      setScrapingLatestBatch(false);
+    }
+  };
+
+  const handleScrapeAnimeListBatch = async () => {
+    setScrapingAnimeListBatch(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const start = parsePositiveInt(animeStartPage);
+      if (!start) {
+        setError('Start page (anime list) harus angka > 0');
+        setScrapingAnimeListBatch(false);
+        return;
+      }
+      const end = animeEndPage ? parsePositiveInt(animeEndPage) : null;
+      const payload = { password, startPage: start };
+      if (end && end >= start) payload.endPage = end;
+      await axiosPost('/api/scrape-anime-list-batch', payload);
+      setSuccess('Scraping batch anime list dijalankan!');
+    } catch (error) {
+      console.error('Error during scraping anime list batch:', error);
+      setError('Gagal menjalankan scraping batch anime list');
+    } finally {
+      setScrapingAnimeListBatch(false);
+    }
+  };
+
   const handleInputChange = (section, field, value) => {
     setConfig(prev => ({
       ...prev,
@@ -260,31 +353,120 @@ export default function Admin() {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="card p-6">
-          <div className="flex items-center space-x-3 mb-4">
-            <FiRefreshCw className="w-6 h-6 text-primary-400" />
-            <h3 className="text-lg font-semibold text-white">Scraping Manual</h3>
+        <div className="card p-6 space-y-6">
+          <div>
+            <div className="flex items-center space-x-3 mb-2">
+              <FiRefreshCw className="w-6 h-6 text-primary-400" />
+              <h3 className="text-lg font-semibold text-white">Scraping Manual</h3>
+            </div>
+            <p className="text-dark-300">Gunakan aksi berikut untuk menjalankan scraping secara manual.</p>
           </div>
-          <p className="text-dark-300 mb-4">
-            Jalankan scraping manual untuk memperbarui data anime dari samehadaku.
-          </p>
-          <button
-            onClick={handleScrape}
-            disabled={scraping}
-            className="btn-primary flex items-center space-x-2"
-          >
-            {scraping ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Scraping...</span>
-              </>
-            ) : (
-              <>
-                <FiRefreshCw className="w-4 h-4" />
-                <span>Jalankan Scraping</span>
-              </>
-            )}
-          </button>
+
+          {/* All-in-one */}
+          <div className="space-y-3">
+            <h4 className="text-white font-medium">Semua Sekaligus</h4>
+            <button
+              onClick={handleScrape}
+              disabled={scraping}
+              className="btn-primary flex items-center space-x-2"
+            >
+              {scraping ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Memulai...</span>
+                </>
+              ) : (
+                <>
+                  <FiRefreshCw className="w-4 h-4" />
+                  <span>Jalankan Scraping All-in-one</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Latest episodes only */}
+          <div className="space-y-3">
+            <h4 className="text-white font-medium">Hanya Latest Episodes</h4>
+            <button
+              onClick={handleScrapeLatestEpisodes}
+              disabled={scrapingLatest}
+              className="btn-secondary"
+            >
+              {scrapingLatest ? 'Memulai...' : 'Scrape Latest Episodes'}
+            </button>
+          </div>
+
+          {/* Anime list only */}
+          <div className="space-y-3">
+            <h4 className="text-white font-medium">Hanya Anime List</h4>
+            <button
+              onClick={handleScrapeAnimeListOnly}
+              disabled={scrapingAnimeList}
+              className="btn-secondary"
+            >
+              {scrapingAnimeList ? 'Memulai...' : 'Scrape Anime List'}
+            </button>
+          </div>
+
+          {/* Batch latest episodes */}
+          <div className="space-y-3">
+            <h4 className="text-white font-medium">Batch Latest Episodes</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <input
+                type="number"
+                min="1"
+                value={latestStartPage}
+                onChange={(e) => setLatestStartPage(e.target.value)}
+                className="input-field w-full"
+                placeholder="Start page"
+              />
+              <input
+                type="number"
+                min="1"
+                value={latestEndPage}
+                onChange={(e) => setLatestEndPage(e.target.value)}
+                className="input-field w-full"
+                placeholder="End page (opsional)"
+              />
+              <button
+                onClick={handleScrapeLatestEpisodesBatch}
+                disabled={scrapingLatestBatch}
+                className="btn-secondary"
+              >
+                {scrapingLatestBatch ? 'Memulai...' : 'Jalankan Batch'}
+              </button>
+            </div>
+          </div>
+
+          {/* Batch anime list */}
+          <div className="space-y-3">
+            <h4 className="text-white font-medium">Batch Anime List</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <input
+                type="number"
+                min="1"
+                value={animeStartPage}
+                onChange={(e) => setAnimeStartPage(e.target.value)}
+                className="input-field w-full"
+                placeholder="Start page"
+              />
+              <input
+                type="number"
+                min="1"
+                value={animeEndPage}
+                onChange={(e) => setAnimeEndPage(e.target.value)}
+                className="input-field w-full"
+                placeholder="End page (opsional)"
+              />
+              <button
+                onClick={handleScrapeAnimeListBatch}
+                disabled={scrapingAnimeListBatch}
+                className="btn-secondary"
+              >
+                {scrapingAnimeListBatch ? 'Memulai...' : 'Jalankan Batch'}
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="card p-6">

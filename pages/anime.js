@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import { axiosGet } from '../utils/api';
 import AnimeListCard from '../components/AnimeListCard';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { FiSearch, FiFilter, FiGrid, FiList, FiX, FiRefreshCw } from 'react-icons/fi';
+import { FiSearch, FiFilter, FiGrid, FiList, FiX } from 'react-icons/fi';
 
 export default function AnimeList() {
   const [anime, setAnime] = useState([]);
@@ -112,26 +112,7 @@ export default function AnimeList() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleForceRefresh = () => {
-    const params = {
-      page: currentPage,
-      limit: 20,
-      forceRefresh: true,
-      ...(searchQuery && { search: searchQuery }),
-      ...(filters.status && { status: filters.status }),
-      ...(filters.sortBy && { sortBy: filters.sortBy }),
-      ...(filters.sortOrder && { sortOrder: filters.sortOrder })
-    };
-
-    axiosGet('/api/anime-list', { params }).then(response => {
-      if (response.data.success) {
-        setAnime(response.data.data.anime);
-        setTotalPages(response.data.data.pagination.totalPages);
-        setTotalItems(response.data.data.pagination.totalItems);
-        setSummary(response.data.data.summary || {});
-      }
-    });
-  };
+  // Removed manual force refresh per new backend policy
 
   // Debug logging
   useEffect(() => {
@@ -220,14 +201,7 @@ export default function AnimeList() {
               <span>Filter</span>
             </button>
             
-            <button
-              onClick={handleForceRefresh}
-              className="btn-secondary flex items-center space-x-2"
-              title="Refresh data dari sumber"
-            >
-              <FiRefreshCw className="w-4 h-4" />
-              <span>Refresh</span>
-            </button>
+            {/* Refresh button removed per new backend policy */}
             
             {(filters.status || searchQuery) && (
               <button

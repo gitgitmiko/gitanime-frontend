@@ -7,7 +7,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import ScrapingStatus from '../components/ScrapingStatus';
 import AnimeListSkeleton from '../components/AnimeListSkeleton';
 import { useToast, ToastContainer } from '../components/Toast';
-import { FiSearch, FiFilter, FiGrid, FiList, FiRefreshCw, FiDatabase } from 'react-icons/fi';
+import { FiSearch, FiFilter, FiGrid, FiList } from 'react-icons/fi';
 
 export default function Home() {
   const [anime, setAnime] = useState([]);
@@ -142,46 +142,7 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleForceRefresh = () => {
-    setLoading(true);
-    setScrapingStatus('scraping');
-    setScrapingProgress(10);
-    
-    const params = {
-      page: currentPage,
-      limit: 20,
-      forceRefresh: true,
-      ...(searchQuery && { search: searchQuery })
-    };
-
-    axiosGet('/api/latest-episodes', { params }).then(response => {
-      if (response.data.success) {
-        const episodes = response.data.data.episodes || [];
-        setAnime(episodes);
-        const pagination = response.data.data.pagination;
-        setTotalPages(pagination.totalPages);
-        setTotalItems(pagination.totalItems);
-        
-        if (episodes.length === 0) {
-          setScrapingStatus('scraping');
-          setScrapingProgress(20);
-        } else {
-          setScrapingStatus('completed');
-          setScrapingProgress(100);
-          setLoading(false);
-        }
-              } else {
-          setError(response.data.message || 'Gagal memuat data anime');
-          setLoading(false);
-          showError(response.data.message || 'Gagal memuat data anime');
-        }
-      }).catch(error => {
-        console.error('Error force refresh:', error);
-        setError('Gagal memuat data anime');
-        setLoading(false);
-        showError('Gagal memuat data anime');
-      });
-  };
+  // Removed manual force refresh per new backend policy
 
   const clearSearch = () => {
     setSearchQuery('');
@@ -307,16 +268,6 @@ export default function Home() {
         </div>
 
         <div className="flex items-center space-x-4">
-          {/* Force Refresh Button */}
-          <button
-            onClick={handleForceRefresh}
-            className="btn-secondary flex items-center space-x-2"
-            title="Refresh data dari sumber"
-          >
-            <FiRefreshCw className="w-4 h-4" />
-            <span>Refresh</span>
-          </button>
-
           {/* Clear Search Button */}
           {searchQuery && (
             <button
